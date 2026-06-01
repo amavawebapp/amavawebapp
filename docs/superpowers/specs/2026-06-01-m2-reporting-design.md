@@ -70,8 +70,13 @@ an indicator later (M3) never breaks historical figures. Indicators are grouped 
 - **Organisation** — everything; headline impact stats. Anonymised.
 
 All aggregate levels (class/programme/org) show **counts and percentages only — no child
-names**. Filters available on every report: **date range**, **development area**,
-**assessment type** (baseline/quarterly/all).
+names**. Filters available on every report: **date range** and **development area**.
+
+The date range keeps the baseline always and bounds which *follow-ups* are counted (so a
+report reads as "progress as of this period, vs baseline"); a window that dropped the
+baseline would break every change figure. A literal **assessment-type** filter
+(baseline/quarterly/all) was considered but **dropped** — it doesn't fit a
+baseline-vs-latest model (filtering to "baseline only" leaves nothing to compare against).
 
 ## 6. Access model
 
