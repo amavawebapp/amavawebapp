@@ -19,8 +19,8 @@ const report: Report = {
 describe('ReportView (aggregate)', () => {
   it('shows a headline percentage and the area name and indicator row', () => {
     render(<ReportView scaleMax={4} aggregate={report} />)
-    expect(screen.getByText(/100%/)).toBeInTheDocument()
+    expect(screen.getAllByText(/100%/).length).toBeGreaterThan(0)
     expect(screen.getByText('General')).toBeInTheDocument()
-    expect(screen.getByText('Listens')).toBeInTheDocument()
+    expect(screen.getAllByText('Listens').length).toBeGreaterThan(0)
   })
 })

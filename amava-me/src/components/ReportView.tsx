@@ -34,13 +34,13 @@ function AggregateBody({ report, scaleMax }: { report: Report; scaleMax: number 
             max={scaleMax}
             data={area.indicators
               .filter(i => i.avgLatest !== null)
-              .map((i, idx) => ({ label: `${idx + 1}`, value: i.avgLatest as number }))}
+              .map(i => ({ label: i.indicatorText.slice(0, 10), value: i.avgLatest as number }))}
           />
           <ReportTable
             columns={['Indicator', 'Measured', 'Improved', 'Stable', 'Declined', '% improved', 'Avg base', 'Avg latest']}
             rows={area.indicators.map(i => [
               i.indicatorText, i.nMeasured, i.nImproved, i.nStable, i.nDeclined,
-              i.percentImproved, i.avgBaseline ?? '—', i.avgLatest ?? '—',
+              `${i.percentImproved}%`, i.avgBaseline ?? '—', i.avgLatest ?? '—',
             ])}
           />
         </section>
