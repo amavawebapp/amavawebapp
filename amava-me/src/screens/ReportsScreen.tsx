@@ -92,12 +92,21 @@ export function ReportsScreen() {
   const isActive = (s: Scope) =>
     s.kind === scope.kind && ('id' in s && 'id' in scope ? s.id === scope.id : true)
 
+  const today = new Date().toISOString().slice(0, 10)
+  const scopeLabel =
+    scope.kind === 'org' ? 'organisation'
+    : scope.kind === 'programme' ? `programme-${slugify(ref.programmes.find(p => p.id === scope.id)?.name ?? 'x')}`
+    : scope.kind === 'class' ? `class-${slugify(ref.classes.find(c => c.id === scope.id)?.name ?? 'x')}`
+    : 'child'
+  // Child reports contain a name, so their CSV export is coordinator-only (spec §5).
+  const canExport = report != null && (report.kind !== 'child' || isCoordinator)
+
   function exportCsv() {
-    if (!report) return
+    if (!report || !canExport) return
     if (report.kind === 'child') {
-      downloadText(`amava-${slugify(report.child.childName)}-report.csv`, childCsv(report.child))
+      downloadText(`amava-${slugify(report.child.childName)}-${today}.csv`, childCsv(report.child))
     } else {
-      downloadText(`amava-${scope!.kind}-report.csv`, aggregateCsv(report.aggregate))
+      downloadText(`amava-${scopeLabel}-${today}.csv`, aggregateCsv(report.aggregate))
     }
   }
 
@@ -123,7 +132,8 @@ export function ReportsScreen() {
         </select>
       </div>
       <div className="no-print" style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-        <button onClick={exportCsv}>Export CSV</button>
+        <button onClick={exportCsv} disabled={!canExport}>Export CSV</button>
+        {!canExport && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Child CSV export is coordinator-only</span>}
         <button onClick={() => window.print()}>Print / Save PDF</button>
       </div>
       {report
