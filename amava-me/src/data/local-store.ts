@@ -46,6 +46,10 @@ export class DexieLocalStore extends Dexie implements LocalStore {
     return this.assessments.where('childId').equals(childId).toArray()
   }
 
+  async getAllAssessments(): Promise<Assessment[]> {
+    return this.assessments.toArray()
+  }
+
   async saveSyncedAssessments(list: Assessment[]): Promise<void> {
     await this.assessments.bulkPut(list.map(a => ({ ...a, syncState: 'synced' as const })))
   }
