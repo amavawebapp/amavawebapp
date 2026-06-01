@@ -15,8 +15,8 @@ export function AppServicesProvider({ children }: { children: ReactNode }) {
     const store = new DexieLocalStore()
     const client = new SupabaseSyncClient(supabase)
     return { store, engine: new SyncEngine(store, client) }
-  }, [session])
-  if (!value) return <>{children}</>
+  }, [session?.user.id])
+  if (!value) return null
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
 
