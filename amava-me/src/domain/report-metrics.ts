@@ -149,6 +149,7 @@ export interface ChildIndicatorRow {
   indicatorId: string
   indicatorText: string
   areaId: string
+  areaName: string
   baseline: number | null
   latest: number | null
   change: number | null
@@ -199,6 +200,7 @@ export function buildChildReport(input: ChildReportInput): ChildReport {
         indicatorId: ind.id,
         indicatorText: ind.text,
         areaId: area.id,
+        areaName: area.name,
         baseline, latest, change,
         classification: change === null ? null : classifyChange(change, threshold),
       })

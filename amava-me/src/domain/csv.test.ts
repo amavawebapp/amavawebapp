@@ -30,10 +30,10 @@ describe('childCsv', () => {
   it('emits area/indicator/baseline/latest/change/classification rows', () => {
     const cr: ChildReport = {
       childId: 'A', childName: 'Lebo M', trends: [], observations: [],
-      rows: [{ indicatorId: 'i1', indicatorText: 'Listens', areaId: 'gen', baseline: 2, latest: 4, change: 2, classification: 'improved' }],
+      rows: [{ indicatorId: 'i1', indicatorText: 'Listens', areaId: 'gen', areaName: 'General', baseline: 2, latest: 4, change: 2, classification: 'improved' }],
     }
     const lines = childCsv(cr).trim().split('\n')
     expect(lines[0]).toBe('area,indicator,baseline,latest,change,classification')
-    expect(lines[1]).toBe('gen,Listens,2,4,2,improved')
+    expect(lines[1]).toBe('General,Listens,2,4,2,improved')
   })
 })

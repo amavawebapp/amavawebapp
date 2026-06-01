@@ -24,6 +24,6 @@ export function aggregateCsv(report: Report): string {
 
 export function childCsv(report: ChildReport): string {
   const header = ['area', 'indicator', 'baseline', 'latest', 'change', 'classification']
-  const rows = report.rows.map(r => [r.areaId, r.indicatorText, r.baseline, r.latest, r.change, r.classification])
+  const rows = report.rows.map(r => [r.areaName, r.indicatorText, r.baseline, r.latest, r.change, r.classification])
   return rowsToCsv(header, rows)
 }

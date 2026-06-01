@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/auth-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useReportAssessments } from '../hooks/use-report-data'
@@ -9,18 +9,33 @@ import { ReportView } from '../components/ReportView'
 import { IMPROVED_THRESHOLD } from '../config'
 import type { Child } from '../domain/types'
 
-type Scope = { kind: 'org' } | { kind: 'programme'; id: string } | { kind: 'class'; id: string } | { kind: 'child'; id: string }
+type Scope =
+  | { kind: 'org' }
+  | { kind: 'programme'; id: string }
+  | { kind: 'class'; id: string }
+  | { kind: 'child'; id: string }
+
+const slugify = (s: string) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'report'
 
 export function ReportsScreen() {
   const { session } = useAuth()
   const ref = useReferenceData()
   const assessments = useReportAssessments()
-  const [scope, setScope] = useState<Scope>({ kind: 'org' })
+  const [scope, setScope] = useState<Scope | null>(null)
+
+  const me = ref?.facilitators.find(f => f.id === session?.user.id)
+  const isCoordinator = me?.role === 'coordinator'
+
+  // Set a sensible default scope once reference data is available.
+  useEffect(() => {
+    if (scope || !ref || !me) return
+    if (isCoordinator) setScope({ kind: 'org' })
+    else if (me.classIds.length > 0) setScope({ kind: 'class', id: me.classIds[0] })
+    else setScope({ kind: 'org' })
+  }, [scope, ref, me, isCoordinator])
 
   const report = useMemo(() => {
-    if (!ref || !assessments) return null
-    const me = ref.facilitators.find(f => f.id === session?.user.id)
-    const isCoordinator = me?.role === 'coordinator'
+    if (!ref || !assessments || !scope) return null
     const visibleClassIds = new Set(isCoordinator ? ref.classes.map(c => c.id) : (me?.classIds ?? []))
     const visibleChildren = ref.children.filter(c => visibleClassIds.has(c.classId))
 
@@ -38,9 +53,9 @@ export function ReportsScreen() {
       const child = visibleChildren.find(c => c.id === scope.id)
       if (!child) return null
       const cls = ref.classes.find(c => c.id === child.classId)
-      const areas = ref.areas.filter(a => a.programmeId === cls?.programmeId)
-      const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
       const programme = ref.programmes.find(p => p.id === cls?.programmeId)
+      const areas = ref.areas.filter(a => a.programmeId === programme?.id)
+      const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
       return {
         kind: 'child' as const,
         scaleMax: programme?.scaleMax ?? 4,
@@ -53,7 +68,14 @@ export function ReportsScreen() {
     }
 
     const children = inScope(visibleChildren)
-    const programme = ref.programmes[0]
+    // Pick the programme that matches the scope (org falls back to the first programme;
+    // multi-programme org rollups are a Milestone 3 concern).
+    const programme =
+      scope.kind === 'programme'
+        ? ref.programmes.find(p => p.id === scope.id)
+        : scope.kind === 'class'
+          ? ref.programmes.find(p => p.id === ref.classes.find(c => c.id === scope.id)?.programmeId)
+          : ref.programmes[0]
     const areas = ref.areas.filter(a => a.programmeId === programme?.id)
     const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
     return {
@@ -61,32 +83,41 @@ export function ReportsScreen() {
       scaleMax: programme?.scaleMax ?? 4,
       aggregate: buildReport({ children, assessments, areas, indicators, threshold: IMPROVED_THRESHOLD }),
     }
-  }, [ref, assessments, scope, session])
+  }, [ref, assessments, scope, isCoordinator, me])
 
-  if (!ref || !assessments) return <p className="container">Loading…</p>
-  const me = ref.facilitators.find(f => f.id === session?.user.id)
-  const isCoordinator = me?.role === 'coordinator'
+  if (!ref || !assessments || !scope) return <p className="container">Loading…</p>
+
   const myClasses = ref.classes.filter(c => isCoordinator || me?.classIds.includes(c.id))
   const myChildren = ref.children.filter(c => myClasses.some(cl => cl.id === c.classId))
+  const isActive = (s: Scope) =>
+    s.kind === scope.kind && ('id' in s && 'id' in scope ? s.id === scope.id : true)
 
   function exportCsv() {
     if (!report) return
-    if (report.kind === 'child') downloadText(`amava-${report.child.childName}-report.csv`, childCsv(report.child))
-    else downloadText(`amava-${scope.kind}-report.csv`, aggregateCsv(report.aggregate))
+    if (report.kind === 'child') {
+      downloadText(`amava-${slugify(report.child.childName)}-report.csv`, childCsv(report.child))
+    } else {
+      downloadText(`amava-${scope!.kind}-report.csv`, aggregateCsv(report.aggregate))
+    }
   }
 
   return (
     <div className="container">
       <h1>Reports</h1>
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }} className="no-print">
-        {isCoordinator && <button onClick={() => setScope({ kind: 'org' })}>Organisation</button>}
+        {isCoordinator && (
+          <button className={isActive({ kind: 'org' }) ? 'primary' : ''} onClick={() => setScope({ kind: 'org' })}>Organisation</button>
+        )}
         {isCoordinator && ref.programmes.map(p => (
-          <button key={p.id} onClick={() => setScope({ kind: 'programme', id: p.id })}>{p.name}</button>
+          <button key={p.id} className={isActive({ kind: 'programme', id: p.id }) ? 'primary' : ''} onClick={() => setScope({ kind: 'programme', id: p.id })}>{p.name}</button>
         ))}
         {myClasses.map(c => (
-          <button key={c.id} onClick={() => setScope({ kind: 'class', id: c.id })}>{c.name}</button>
+          <button key={c.id} className={isActive({ kind: 'class', id: c.id }) ? 'primary' : ''} onClick={() => setScope({ kind: 'class', id: c.id })}>{c.name}</button>
         ))}
-        <select onChange={e => e.target.value && setScope({ kind: 'child', id: e.target.value })} defaultValue="">
+        <select
+          value={scope.kind === 'child' ? scope.id : ''}
+          onChange={e => e.target.value && setScope({ kind: 'child', id: e.target.value })}
+        >
           <option value="" disabled>A child…</option>
           {myChildren.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.surname}</option>)}
         </select>
