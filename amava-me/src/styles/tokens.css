@@ -1,0 +1,20 @@
+:root {
+  /* Amava 2022 palette */
+  --slate: #687F8B;
+  --teal: #97D7D9;
+  --sand: #E5BF7A;
+  --green: #C4E2B7;
+  --sage: #9CA297;
+  --terracotta: #DD866C;
+
+  --bg: #ffffff;
+  --text: #2b3338;
+  --muted: #6b7780;
+  --primary: var(--slate);
+  --accent: var(--terracotta);
+
+  --radius: 12px;
+  --tap-min: 48px; /* phone-friendly minimum tap target */
+  --font-display: 'Cavorting', system-ui, sans-serif;
+  --font-body: 'Minion Pro', Georgia, serif;
+}
