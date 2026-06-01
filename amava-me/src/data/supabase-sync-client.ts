@@ -4,7 +4,7 @@ import type { SyncClient } from './datastore'
 
 /** Maps snake_case DB rows to the camelCase domain shape and back. */
 export class SupabaseSyncClient implements SyncClient {
-  constructor(private sb: SupabaseClient, private currentFacilitatorId: string) {}
+  constructor(private sb: SupabaseClient) {}
 
   async fetchReferenceData(): Promise<ReferenceData> {
     const [programmes, areas, indicators, classes, facilitators, children] = await Promise.all([
