@@ -21,6 +21,7 @@ export function HomeScreen() {
     <div className="container">
       <SyncBadge online={online} pendingCount={pendingCount} />
       <h1>My classes</h1>
+      <p className="no-print"><Link to="/reports">View reports →</Link></p>
       {myClasses.length === 0 ? (
         <p>No classes assigned yet. Please contact your coordinator.</p>
       ) : (
