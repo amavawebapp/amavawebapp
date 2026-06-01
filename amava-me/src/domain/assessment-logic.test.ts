@@ -38,6 +38,10 @@ describe('indicatorChange', () => {
     const baseline = mkAssessment({ type: 'baseline', scores: [] })
     expect(indicatorChange([baseline], 'i1')).toBeNull()
   })
+  it('returns null for a baseline-only child even if the baseline scored the indicator', () => {
+    const baseline = mkAssessment({ type: 'baseline', scores: [{ indicatorId: 'i1', indicatorText: 'x', score: 3 }] })
+    expect(indicatorChange([baseline], 'i1')).toBeNull()
+  })
 })
 
 describe('classifyChange', () => {

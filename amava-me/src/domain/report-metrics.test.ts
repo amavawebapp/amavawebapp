@@ -64,6 +64,18 @@ describe('buildReport', () => {
     expect(empty.areas[0].indicators[0].percentImproved).toBe(0)
     expect(empty.areas[0].indicators[0].avgBaseline).toBeNull()
   })
+  it('excludes a child from an indicator when their follow-up did not score it', () => {
+    const kids = [child('A'), child('B')]
+    const ass: Assessment[] = [
+      ax('a1', 'A', 'baseline', '2026-01-10', { i1: 2, i2: 2 }),
+      ax('a2', 'A', 'quarterly', '2026-04-10', { i1: 4 }),
+      ax('b1', 'B', 'baseline', '2026-01-10', { i1: 1, i2: 1 }),
+      ax('b2', 'B', 'quarterly', '2026-04-10', { i1: 2, i2: 3 }),
+    ]
+    const r = buildReport({ children: kids, assessments: ass, areas: [area], indicators, threshold: 1 })
+    const i2 = r.areas[0].indicators.find(i => i.indicatorId === 'i2')!
+    expect(i2.nMeasured).toBe(1)
+  })
 })
 
 import { buildChildReport } from './report-metrics'

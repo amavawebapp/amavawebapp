@@ -12,8 +12,10 @@ function scoreFor(a: Assessment | undefined, indicatorId: string): number | null
 /** latest score minus baseline score for an indicator; null if either missing. */
 export function indicatorChange(history: Assessment[], indicatorId: string): number | null {
   const baseline = history.find(a => a.type === 'baseline')
-  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date))
-  const latest = sorted[sorted.length - 1]
+  const followUps = history
+    .filter(a => a.type !== 'baseline')
+    .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
+  const latest = followUps[followUps.length - 1]
   const base = scoreFor(baseline, indicatorId)
   const last = scoreFor(latest, indicatorId)
   if (base === null || last === null) return null

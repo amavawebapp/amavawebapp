@@ -59,7 +59,7 @@ function scoreIn(a: Assessment, indicatorId: string): number | null {
 
 function baselineAndLatest(history: Assessment[], indicatorId: string): { baseline: number | null; latest: number | null } {
   const baselineA = history.find(a => a.type === 'baseline')
-  const followUps = history.filter(a => a.type !== 'baseline').sort((a, b) => a.date.localeCompare(b.date))
+  const followUps = history.filter(a => a.type !== 'baseline').sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id))
   const latestA = followUps[followUps.length - 1]
   return {
     baseline: baselineA ? scoreIn(baselineA, indicatorId) : null,
@@ -135,8 +135,9 @@ export function buildReport(input: ReportInput): Report {
       percentImproved: measuredIndicators.length
         ? Math.round(measuredIndicators.reduce((s, i) => s + i.percentImproved, 0) / measuredIndicators.length)
         : 0,
-      avgBaseline: mean(measuredIndicators.map(i => i.avgBaseline as number)),
-      avgLatest: mean(measuredIndicators.map(i => i.avgLatest as number)),
+      // Unweighted mean across the area's measured indicators (fine for small cohorts).
+      avgBaseline: mean(measuredIndicators.map(i => i.avgBaseline).filter((v): v is number => v !== null)),
+      avgLatest: mean(measuredIndicators.map(i => i.avgLatest).filter((v): v is number => v !== null)),
     }
   })
 
