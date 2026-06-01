@@ -104,3 +104,9 @@ create policy assessment_rw on assessment for all to authenticated using (
       and (f.role = 'coordinator' or c.class_id = any (f.class_ids))
   )
 );
+
+-- Grant the API roles access to the tables so the Data API can reach them.
+-- RLS (above) still governs which rows each role actually sees/writes.
+grant usage on schema public to anon, authenticated;
+grant select on programme, development_area, indicator, class_group, facilitator, child to anon, authenticated;
+grant select, insert, update on assessment to authenticated;
