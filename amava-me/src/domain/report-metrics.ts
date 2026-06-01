@@ -67,6 +67,16 @@ function baselineAndLatest(history: Assessment[], indicatorId: string): { baseli
   }
 }
 
+/** Keep all baselines; keep follow-ups only within [from, to] (empty bound = open). */
+export function filterByDate(assessments: Assessment[], from: string, to: string): Assessment[] {
+  return assessments.filter(a => {
+    if (a.type === 'baseline') return true
+    if (from && a.date < from) return false
+    if (to && a.date > to) return false
+    return true
+  })
+}
+
 export function buildReport(input: ReportInput): Report {
   const { children, assessments, areas, indicators, threshold } = input
   const scopeIds = new Set(children.map(c => c.id))

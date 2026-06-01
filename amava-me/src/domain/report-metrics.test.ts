@@ -78,7 +78,7 @@ describe('buildReport', () => {
   })
 })
 
-import { buildChildReport } from './report-metrics'
+import { buildChildReport, filterByDate } from './report-metrics'
 
 describe('buildChildReport', () => {
   const cArea: DevelopmentArea = { id: 'gen', programmeId: 'p', name: 'General', sortOrder: 1, gardenOnly: false, active: true }
@@ -106,5 +106,21 @@ describe('buildChildReport', () => {
   it('leaves change null when there is no follow-up', () => {
     const r = buildChildReport({ child: childA, history: [history[0]], areas: [cArea], indicators: cIndicators, threshold: 1 })
     expect(r.rows[0]).toMatchObject({ baseline: 2, latest: null, change: null, classification: null })
+  })
+})
+
+describe('filterByDate', () => {
+  const list: Assessment[] = [
+    ax('b', 'A', 'baseline', '2026-01-10', { i1: 2 }),
+    ax('q1', 'A', 'quarterly', '2026-04-10', { i1: 3 }),
+    ax('q2', 'A', 'quarterly', '2026-07-10', { i1: 4 }),
+  ]
+  it('always keeps baselines and keeps follow-ups within the range', () => {
+    const r = filterByDate(list, '2026-03-01', '2026-05-01')
+    expect(r.map(a => a.id).sort()).toEqual(['b', 'q1'])
+  })
+  it('treats empty bounds as open-ended', () => {
+    expect(filterByDate(list, '', '').map(a => a.id).sort()).toEqual(['b', 'q1', 'q2'])
+    expect(filterByDate(list, '2026-05-01', '').map(a => a.id).sort()).toEqual(['b', 'q2'])
   })
 })

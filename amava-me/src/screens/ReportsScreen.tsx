@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/auth-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useReportAssessments } from '../hooks/use-report-data'
-import { buildReport, buildChildReport } from '../domain/report-metrics'
+import { buildReport, buildChildReport, filterByDate } from '../domain/report-metrics'
 import { aggregateCsv, childCsv } from '../domain/csv'
 import { downloadText } from '../lib/download'
 import { ReportView } from '../components/ReportView'
@@ -22,6 +22,9 @@ export function ReportsScreen() {
   const ref = useReferenceData()
   const assessments = useReportAssessments()
   const [scope, setScope] = useState<Scope | null>(null)
+  const [from, setFrom] = useState('')
+  const [to, setTo] = useState('')
+  const [areaFilter, setAreaFilter] = useState('') // '' = all areas
 
   const me = ref?.facilitators.find(f => f.id === session?.user.id)
   const isCoordinator = me?.role === 'coordinator'
@@ -36,6 +39,7 @@ export function ReportsScreen() {
 
   const report = useMemo(() => {
     if (!ref || !assessments || !scope) return null
+    const dated = filterByDate(assessments, from, to)
     const visibleClassIds = new Set(isCoordinator ? ref.classes.map(c => c.id) : (me?.classIds ?? []))
     const visibleChildren = ref.children.filter(c => visibleClassIds.has(c.classId))
 
@@ -56,13 +60,15 @@ export function ReportsScreen() {
       const programme = ref.programmes.find(p => p.id === cls?.programmeId)
       const areas = ref.areas.filter(a => a.programmeId === programme?.id)
       const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
+      const shownAreas = areaFilter ? areas.filter(a => a.id === areaFilter) : areas
+      const shownIndicators = indicators.filter(i => shownAreas.some(a => a.id === i.areaId))
       return {
         kind: 'child' as const,
         scaleMax: programme?.scaleMax ?? 4,
         child: buildChildReport({
           child,
-          history: assessments.filter(a => a.childId === child.id),
-          areas, indicators, threshold: IMPROVED_THRESHOLD,
+          history: dated.filter(a => a.childId === child.id),
+          areas: shownAreas, indicators: shownIndicators, threshold: IMPROVED_THRESHOLD,
         }),
       }
     }
@@ -78,12 +84,14 @@ export function ReportsScreen() {
           : ref.programmes[0]
     const areas = ref.areas.filter(a => a.programmeId === programme?.id)
     const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
+    const shownAreas = areaFilter ? areas.filter(a => a.id === areaFilter) : areas
+    const shownIndicators = indicators.filter(i => shownAreas.some(a => a.id === i.areaId))
     return {
       kind: 'aggregate' as const,
       scaleMax: programme?.scaleMax ?? 4,
-      aggregate: buildReport({ children, assessments, areas, indicators, threshold: IMPROVED_THRESHOLD }),
+      aggregate: buildReport({ children, assessments: dated, areas: shownAreas, indicators: shownIndicators, threshold: IMPROVED_THRESHOLD }),
     }
-  }, [ref, assessments, scope, isCoordinator, me])
+  }, [ref, assessments, scope, isCoordinator, me, from, to, areaFilter])
 
   if (!ref || !assessments || !scope) return <p className="container">Loading…</p>
 
@@ -130,6 +138,17 @@ export function ReportsScreen() {
           <option value="" disabled>A child…</option>
           {myChildren.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.surname}</option>)}
         </select>
+      </div>
+      <div className="no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
+        <label style={{ fontSize: 13 }}>From <input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
+        <label style={{ fontSize: 13 }}>To <input type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
+        <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)}>
+          <option value="">All areas</option>
+          {ref.areas.filter(a => a.active).sort((a, b) => a.sortOrder - b.sortOrder).map(a => (
+            <option key={a.id} value={a.id}>{a.name}</option>
+          ))}
+        </select>
+        {(from || to || areaFilter) && <button onClick={() => { setFrom(''); setTo(''); setAreaFilter('') }}>Clear filters</button>}
       </div>
       <div className="no-print" style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <button onClick={exportCsv} disabled={!canExport}>Export CSV</button>
