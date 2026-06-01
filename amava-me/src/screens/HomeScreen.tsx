@@ -21,11 +21,15 @@ export function HomeScreen() {
     <div className="container">
       <SyncBadge online={online} pendingCount={pendingCount} />
       <h1>My classes</h1>
-      <ul>
-        {myClasses.map(c => (
-          <li key={c.id}><Link to={`/class/${c.id}`}>{c.name}</Link></li>
-        ))}
-      </ul>
+      {myClasses.length === 0 ? (
+        <p>No classes assigned yet. Please contact your coordinator.</p>
+      ) : (
+        <ul>
+          {myClasses.map(c => (
+            <li key={c.id}><Link to={`/class/${c.id}`}>{c.name}</Link></li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
