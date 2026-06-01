@@ -191,7 +191,12 @@ to **CSV** and a **branded PDF**.
 - **Backend / database / auth:** **Supabase free tier** (Postgres + Auth +
   row-level security). Comfortably within free limits at ~35 children / 5 classes,
   with headroom to grow.
-- **Hosting:** Cloudflare Pages or Netlify free tier (static PWA hosting).
+- **Hosting:** **Cloudflare Pages** free tier (static PWA hosting). Chosen over
+  Netlify/Vercel for: unlimited free bandwidth (no surprise-bill risk for the
+  NGO), free-tier terms that permit this operational/commercial use (Vercel's
+  free Hobby tier does not), and edge locations in Cape Town and Johannesburg for
+  faster loads on South African networks. Hosting is just static files, so moving
+  to another host later is a trivial config change.
 - **Branding:** palette `#687F8B` (slate), `#97D7D9` (teal), `#E5BF7A` (sand),
   `#C4E2B7` (soft green), `#9CA297` (sage), `#DD866C` (terracotta); **Cavorting**
   (display) and **Minion Pro** (body) fonts as supplied; Avenir substituted with a
