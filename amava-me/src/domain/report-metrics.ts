@@ -1,5 +1,5 @@
 import type { Assessment, Child, DevelopmentArea, Indicator } from './types'
-import { classifyChange } from './assessment-logic'
+import { classifyChange, type ChangeClass } from './assessment-logic'
 
 export interface IndicatorReport {
   indicatorId: string
@@ -142,4 +142,85 @@ export function buildReport(input: ReportInput): Report {
 
   headlines.sort((a, b) => b.percentImproved - a.percentImproved)
   return { areas: areaReports, childrenInScope: children.length, withBaseline, withFollowUp, headlines }
+}
+
+export interface ChildIndicatorRow {
+  indicatorId: string
+  indicatorText: string
+  areaId: string
+  baseline: number | null
+  latest: number | null
+  change: number | null
+  classification: ChangeClass | null
+}
+
+export interface ChildAreaTrend {
+  areaId: string
+  areaName: string
+  points: { date: string; avgScore: number }[]
+}
+
+export interface ChildObservation { date: string; areaId: string | null; note: string }
+
+export interface ChildReport {
+  childId: string
+  childName: string
+  rows: ChildIndicatorRow[]
+  trends: ChildAreaTrend[]
+  observations: ChildObservation[]
+}
+
+export interface ChildReportInput {
+  child: Child
+  history: Assessment[]
+  areas: DevelopmentArea[]
+  indicators: Indicator[]
+  threshold: number
+}
+
+export function buildChildReport(input: ChildReportInput): ChildReport {
+  const { child, history, areas, indicators, threshold } = input
+  const activeAreas = areas.filter(a => a.active).sort((a, b) => a.sortOrder - b.sortOrder)
+  const sorted = [...history].sort((a, b) => a.date.localeCompare(b.date))
+
+  const rows: ChildIndicatorRow[] = []
+  const trends: ChildAreaTrend[] = []
+
+  for (const area of activeAreas) {
+    const areaIndicators = indicators
+      .filter(i => i.active && i.areaId === area.id)
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+
+    for (const ind of areaIndicators) {
+      const { baseline, latest } = baselineAndLatest(history, ind.id)
+      const change = baseline !== null && latest !== null ? latest - baseline : null
+      rows.push({
+        indicatorId: ind.id,
+        indicatorText: ind.text,
+        areaId: area.id,
+        baseline, latest, change,
+        classification: change === null ? null : classifyChange(change, threshold),
+      })
+    }
+
+    const points = sorted
+      .map(a => {
+        const vals = areaIndicators
+          .map(ind => scoreIn(a, ind.id))
+          .filter((v): v is number => v !== null)
+        return vals.length ? { date: a.date, avgScore: round1(vals.reduce((s, v) => s + v, 0) / vals.length) } : null
+      })
+      .filter((p): p is { date: string; avgScore: number } => p !== null)
+    trends.push({ areaId: area.id, areaName: area.name, points })
+  }
+
+  const observations: ChildObservation[] = sorted.flatMap(a =>
+    a.observations.map(o => ({ date: a.date, areaId: o.areaId, note: o.note })),
+  )
+
+  return {
+    childId: child.id,
+    childName: `${child.firstName} ${child.surname}`,
+    rows, trends, observations,
+  }
 }

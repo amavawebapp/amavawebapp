@@ -65,3 +65,34 @@ describe('buildReport', () => {
     expect(empty.areas[0].indicators[0].avgBaseline).toBeNull()
   })
 })
+
+import { buildChildReport } from './report-metrics'
+
+describe('buildChildReport', () => {
+  const cArea: DevelopmentArea = { id: 'gen', programmeId: 'p', name: 'General', sortOrder: 1, gardenOnly: false, active: true }
+  const cIndicators: Indicator[] = [
+    { id: 'i1', areaId: 'gen', text: 'Listens', hint: null, sortOrder: 1, active: true },
+  ]
+  const childA: Child = { id: 'A', classId: 'c', firstName: 'Lebo', surname: 'M', fields: {}, dateStarted: '2026-01-01', isSample: true, active: true }
+  const history: Assessment[] = [
+    ax('a1', 'A', 'baseline', '2026-01-10', { i1: 2 }),
+    ax('a2', 'A', 'quarterly', '2026-04-10', { i1: 4 }),
+  ]
+
+  it('builds per-indicator baseline/latest/change/classification rows', () => {
+    const r = buildChildReport({ child: childA, history, areas: [cArea], indicators: cIndicators, threshold: 1 })
+    expect(r.childName).toBe('Lebo M')
+    expect(r.rows[0]).toMatchObject({ indicatorId: 'i1', baseline: 2, latest: 4, change: 2, classification: 'improved' })
+  })
+  it('builds a per-area trend series across assessments by date', () => {
+    const r = buildChildReport({ child: childA, history, areas: [cArea], indicators: cIndicators, threshold: 1 })
+    const trend = r.trends[0]
+    expect(trend.areaId).toBe('gen')
+    expect(trend.points.map(p => p.date)).toEqual(['2026-01-10', '2026-04-10'])
+    expect(trend.points.map(p => p.avgScore)).toEqual([2, 4])
+  })
+  it('leaves change null when there is no follow-up', () => {
+    const r = buildChildReport({ child: childA, history: [history[0]], areas: [cArea], indicators: cIndicators, threshold: 1 })
+    expect(r.rows[0]).toMatchObject({ baseline: 2, latest: null, change: null, classification: null })
+  })
+})
