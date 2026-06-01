@@ -9,8 +9,8 @@ export class SupabaseSyncClient implements SyncClient {
   async fetchReferenceData(): Promise<ReferenceData> {
     const [programmes, areas, indicators, classes, facilitators, children] = await Promise.all([
       this.sb.from('programme').select('*').eq('active', true),
-      this.sb.from('development_area').select('*'),
-      this.sb.from('indicator').select('*'),
+      this.sb.from('development_area').select('*').eq('active', true),
+      this.sb.from('indicator').select('*').eq('active', true),
       this.sb.from('class_group').select('*').eq('active', true),
       this.sb.from('facilitator').select('*'),
       this.sb.from('child').select('*').eq('active', true),
@@ -46,6 +46,7 @@ export class SupabaseSyncClient implements SyncClient {
   }
 
   async fetchAssessmentsForFacilitator(): Promise<Assessment[]> {
+    // Row scoping is enforced server-side by the assessment_rw RLS policy.
     const { data, error } = await this.sb.from('assessment').select('*')
     if (error) throw error
     return (data ?? []).map(a => ({

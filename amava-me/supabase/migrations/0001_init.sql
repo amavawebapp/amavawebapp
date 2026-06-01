@@ -71,7 +71,10 @@ alter table facilitator enable row level security;
 alter table child enable row level security;
 alter table assessment enable row level security;
 
--- Any signed-in user may read reference data.
+-- Any signed-in user may read reference data. NOTE: ref_read_facilitator is
+-- intentionally open to all authenticated users — this is an internal staff-only
+-- tool, and the app caches all facilitators to display co-assessor names. If the
+-- auth pool is ever widened beyond staff, restrict facilitator reads by role.
 create policy ref_read_programme on programme for select to authenticated using (true);
 create policy ref_read_area on development_area for select to authenticated using (true);
 create policy ref_read_indicator on indicator for select to authenticated using (true);
