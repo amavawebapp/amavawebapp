@@ -18,12 +18,6 @@ interface Props {
   onCancel: () => void
 }
 
-let idSeq = 0
-function newId(today: string, childId: string): string {
-  idSeq += 1
-  return `${childId}-${today}-${idSeq}`
-}
-
 export function AssessmentFlow(props: Props) {
   const { programme, areas, indicators, cls, child, type, facilitatorId, today } = props
   const steps = visibleAreas(areas, cls)
@@ -33,12 +27,15 @@ export function AssessmentFlow(props: Props) {
   const [coAssessors, setCoAssessors] = useState('')
   const [error, setError] = useState('')
 
+  if (steps.length === 0) {
+    return <p className="container">No assessment areas available for this class.</p>
+  }
   const area = steps[stepIdx]
   const areaIndicators = indicators.filter(i => i.areaId === area.id && i.active)
     .sort((a, b) => a.sortOrder - b.sortOrder)
-  const allIndicators = indicators.filter(
-    i => i.active && steps.some(s => s.id === i.areaId),
-  )
+  const allIndicators = indicators
+    .filter(i => i.active && steps.some(s => s.id === i.areaId))
+    .sort((a, b) => a.sortOrder - b.sortOrder)
   const isLast = stepIdx === steps.length - 1
 
   function handleSubmit() {
@@ -48,7 +45,7 @@ export function AssessmentFlow(props: Props) {
       return
     }
     const assessment: Assessment = {
-      id: newId(today, child.id),
+      id: crypto.randomUUID(),
       childId: child.id,
       type,
       date: today,
@@ -100,10 +97,10 @@ export function AssessmentFlow(props: Props) {
 
       <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
         {stepIdx > 0 && (
-          <button type="button" onClick={() => setStepIdx(i => i - 1)}>Back</button>
+          <button type="button" onClick={() => { setError(''); setStepIdx(i => i - 1) }}>Back</button>
         )}
         {!isLast && (
-          <button type="button" className="primary" onClick={() => setStepIdx(i => i + 1)}>
+          <button type="button" className="primary" onClick={() => { setError(''); setStepIdx(i => i + 1) }}>
             Next
           </button>
         )}

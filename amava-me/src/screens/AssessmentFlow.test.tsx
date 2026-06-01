@@ -62,4 +62,33 @@ describe('AssessmentFlow', () => {
     expect(onSubmit).not.toHaveBeenCalled()
     expect(screen.getByText(/score every indicator/i)).toBeInTheDocument()
   })
+
+  it('navigates across multiple areas and submits all scores', async () => {
+    const twoAreas: DevelopmentArea[] = [
+      { id: 'gen', programmeId: 'p', name: 'General', sortOrder: 1, gardenOnly: false, active: true },
+      { id: 'emo', programmeId: 'p', name: 'Emotional', sortOrder: 2, gardenOnly: false, active: true },
+    ]
+    const twoIndicators: Indicator[] = [
+      { id: 'i1', areaId: 'gen', text: 'Listens', hint: null, sortOrder: 1, active: true },
+      { id: 'i2', areaId: 'emo', text: 'Communicates', hint: null, sortOrder: 1, active: true },
+    ]
+    const onSubmit = vi.fn()
+    render(
+      <AssessmentFlow
+        programme={programme} areas={twoAreas} indicators={twoIndicators}
+        cls={cls} child={child} type="baseline"
+        facilitatorId="f1" today="2026-02-01"
+        onSubmit={onSubmit} onCancel={() => {}}
+      />,
+    )
+    // Step 1: Next shown, Save not shown
+    expect(screen.queryByRole('button', { name: /Save assessment/ })).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /Strong/ })) // score i1
+    await userEvent.click(screen.getByRole('button', { name: /^Next$/ }))
+    // Step 2: Save now shown
+    await userEvent.click(screen.getByRole('button', { name: /Strong/ })) // score i2
+    await userEvent.click(screen.getByRole('button', { name: /Save assessment/ }))
+    expect(onSubmit).toHaveBeenCalledTimes(1)
+    expect(onSubmit.mock.calls[0][0].scores).toHaveLength(2)
+  })
 })
