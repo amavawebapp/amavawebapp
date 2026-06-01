@@ -42,4 +42,11 @@ describe('DexieLocalStore', () => {
     const list = await store.getAssessmentsForChild('c1')
     expect(list.map(a => a.id).sort()).toEqual(['a1', 'a2'])
   })
+
+  it('returns all assessments across children', async () => {
+    await store.enqueueAssessment(mkAssessment('a1', 'c1'))
+    await store.saveSyncedAssessments([{ ...mkAssessment('a2', 'c2'), syncState: 'synced' }])
+    const all = await store.getAllAssessments()
+    expect(all.map(a => a.id).sort()).toEqual(['a1', 'a2'])
+  })
 })

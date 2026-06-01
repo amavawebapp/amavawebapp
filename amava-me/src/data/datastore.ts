@@ -10,6 +10,8 @@ export interface LocalStore {
   markSynced(id: string): Promise<void>
   /** All assessments (pending + synced) for a child, for history views. */
   getAssessmentsForChild(childId: string): Promise<Assessment[]>
+  /** All assessments in the local cache (pending + synced), for reporting. */
+  getAllAssessments(): Promise<Assessment[]>
   saveSyncedAssessments(list: Assessment[]): Promise<void>
 }
 

@@ -1,0 +1,6 @@
+@media print {
+  .no-print { display: none !important; }
+  .container { max-width: 100%; }
+  a[href]::after { content: ''; }
+  h1, h2, h3 { color: #000; }
+}
