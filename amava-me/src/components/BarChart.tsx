@@ -14,8 +14,8 @@ export function BarChart({ data, max, height = 140 }: Props) {
         return (
           <g key={d.label}>
             <rect className="bar" x={x} y={y} width={barW} height={h} rx={4} fill="var(--slate)" />
-            <text x={x + barW / 2} y={height - 6} textAnchor="middle" fontSize="11" fill="var(--muted)">{d.label}</text>
-            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize="11" fill="var(--text)">{d.value}</text>
+            <text x={x + barW / 2} y={height - 6} textAnchor="middle" fontSize="11" fill="var(--muted)" aria-hidden="true">{d.label}</text>
+            <text x={x + barW / 2} y={y - 4} textAnchor="middle" fontSize="11" fill="var(--text)" aria-hidden="true">{d.value}</text>
           </g>
         )
       })}
