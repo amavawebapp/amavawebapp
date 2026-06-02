@@ -9,7 +9,7 @@ interface Props {
 
 export function ScaleSelector({ descriptors, value, onChange }: Props) {
   return (
-    <div className="am-scale">
+    <div className="am-scale" role="group" aria-label="Rating">
       {descriptors.map(d => {
         const on = value === d.value
         return (
