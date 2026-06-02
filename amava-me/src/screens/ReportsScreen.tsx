@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useReportAssessments } from '../hooks/use-report-data'
@@ -8,6 +9,7 @@ import { downloadText } from '../lib/download'
 import { buildReportDoc, formatPeriod } from '../domain/pdf-report'
 import { downloadPdf } from '../lib/pdf'
 import { ReportView } from '../components/ReportView'
+import { AppBar, Icon, BottomNav } from '../components/ui'
 import { IMPROVED_THRESHOLD } from '../config'
 import type { Child } from '../domain/types'
 
@@ -20,6 +22,7 @@ type Scope =
 const slugify = (s: string) => s.replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase() || 'report'
 
 export function ReportsScreen() {
+  const navigate = useNavigate()
   const { session } = useAuth()
   const ref = useReferenceData()
   const assessments = useReportAssessments()
@@ -155,53 +158,114 @@ export function ReportsScreen() {
     }
   }
 
+  // Children with any assessment (for the "One child" sub-picker + default).
+  const childIdsWithData = new Set(assessments.map(a => a.childId))
+  const childrenWithData = myChildren.filter(c => childIdsWithData.has(c.id))
+  const activeProgrammes = ref.programmes.filter(p => p.active)
+  const showProgramme = activeProgrammes.length > 1
+
+  function pickClass() {
+    const first = myClasses[0]
+    if (first) setScope({ kind: 'class', id: first.id })
+  }
+  function pickChild() {
+    const first = childrenWithData[0] ?? myChildren[0]
+    if (first) setScope({ kind: 'child', id: first.id })
+  }
+  function pickProgramme() {
+    const first = activeProgrammes[0]
+    if (first) setScope({ kind: 'programme', id: first.id })
+  }
+
+  const segActive = (kind: Scope['kind']) => scope.kind === kind
+
   return (
-    <div className="container">
-      <h1>Reports</h1>
-      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }} className="no-print">
-        {isCoordinator && (
-          <button className={isActive({ kind: 'org' }) ? 'primary' : ''} onClick={() => setScope({ kind: 'org' })}>Organisation</button>
+    <div className="am-root am-screen">
+      <AppBar title="Reports" onBack={() => navigate('/')} />
+      <div className="am-scroll am-pad" style={{ paddingTop: 12, paddingBottom: 28, display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+        {/* scope segmented control */}
+        <div className="am-seg no-print">
+          {isCoordinator && (
+            <button className={segActive('org') ? 'on' : ''} onClick={() => setScope({ kind: 'org' })}>Everyone</button>
+          )}
+          <button className={segActive('class') ? 'on' : ''} onClick={pickClass}>By class</button>
+          {isCoordinator && showProgramme && (
+            <button className={segActive('programme') ? 'on' : ''} onClick={pickProgramme}>By programme</button>
+          )}
+          <button className={segActive('child') ? 'on' : ''} onClick={pickChild}>One child</button>
+        </div>
+
+        {/* sub-pickers */}
+        {scope.kind === 'class' && (
+          <div className="am-hscroll no-print">
+            {myClasses.map(c => (
+              <button key={c.id} className={'am-chip' + (isActive({ kind: 'class', id: c.id }) ? ' am-chip--on' : '')} onClick={() => setScope({ kind: 'class', id: c.id })}>{c.name}</button>
+            ))}
+          </div>
         )}
-        {isCoordinator && ref.programmes.map(p => (
-          <button key={p.id} className={isActive({ kind: 'programme', id: p.id }) ? 'primary' : ''} onClick={() => setScope({ kind: 'programme', id: p.id })}>{p.name}</button>
+        {scope.kind === 'programme' && (
+          <div className="am-hscroll no-print">
+            {activeProgrammes.map(p => (
+              <button key={p.id} className={'am-chip' + (isActive({ kind: 'programme', id: p.id }) ? ' am-chip--on' : '')} onClick={() => setScope({ kind: 'programme', id: p.id })}>{p.name}</button>
+            ))}
+          </div>
+        )}
+        {scope.kind === 'child' && (
+          <div className="am-hscroll no-print">
+            {childrenWithData.map(c => (
+              <button key={c.id} className={'am-chip' + (isActive({ kind: 'child', id: c.id }) ? ' am-chip--on' : '')} onClick={() => setScope({ kind: 'child', id: c.id })}>{c.firstName}</button>
+            ))}
+          </div>
+        )}
+
+        {/* filters */}
+        <details className="no-print">
+          <summary className="am-eyebrow" style={{ cursor: 'pointer' }}>Filters</summary>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center', marginTop: 10 }}>
+            <label className="am-row__sub">From <input className="am-input" style={{ width: 'auto' }} type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
+            <label className="am-row__sub">To <input className="am-input" style={{ width: 'auto' }} type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
+            <select className="am-input" style={{ width: 'auto' }} value={areaFilter} onChange={e => setAreaFilter(e.target.value)}>
+              <option value="">All areas</option>
+              {ref.areas.filter(a => a.active).sort((a, b) => a.sortOrder - b.sortOrder).map(a => (
+                <option key={a.id} value={a.id}>{a.name}</option>
+              ))}
+            </select>
+            {(from || to || areaFilter) && <button className="am-btn am-btn--ghost" onClick={() => { setFrom(''); setTo(''); setAreaFilter('') }}>Clear filters</button>}
+          </div>
+        </details>
+
+        {/* report body */}
+        {!report && <p className="am-muted">Nothing to show for this selection.</p>}
+        {report?.kind === 'org' && report.sections.map(s => (
+          <section key={s.programmeId} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div className="am-sectionlab"><span className="am-eyebrow">{s.programmeName}</span></div>
+            <ReportView scaleMax={s.scaleMax} aggregate={s.report} />
+          </section>
         ))}
-        {myClasses.map(c => (
-          <button key={c.id} className={isActive({ kind: 'class', id: c.id }) ? 'primary' : ''} onClick={() => setScope({ kind: 'class', id: c.id })}>{c.name}</button>
-        ))}
-        <select
-          value={scope.kind === 'child' ? scope.id : ''}
-          onChange={e => e.target.value && setScope({ kind: 'child', id: e.target.value })}
+        {report?.kind === 'aggregate' && <ReportView scaleMax={report.scaleMax} aggregate={report.aggregate} />}
+        {report?.kind === 'child' && <ReportView scaleMax={report.scaleMax} child={report.child} />}
+
+        {/* export actions */}
+        <div className="am-sectionlab no-print"><span className="am-eyebrow">Share this report</span></div>
+        <button
+          className="am-btn am-btn--brand am-btn--block no-print"
+          disabled={!canExport}
+          onClick={() => navigate('/report/print', { state: { scope, from, to } })}
         >
-          <option value="" disabled>A child…</option>
-          {myChildren.map(c => <option key={c.id} value={c.id}>{c.firstName} {c.surname}</option>)}
-        </select>
+          <Icon name="report" size={20} /> Open printable report
+        </button>
+        <div className="no-print" style={{ display: 'flex', gap: 10 }}>
+          <button className="am-btn am-btn--ghost" style={{ flex: 1 }} disabled={!canExport} onClick={exportPdf}><Icon name="download" size={20} /> PDF</button>
+          <button className="am-btn am-btn--ghost" style={{ flex: 1 }} onClick={() => window.print()}><Icon name="print" size={20} /> Print</button>
+          <button className="am-btn am-btn--ghost" style={{ flex: 1 }} disabled={!canExport} onClick={exportCsv}>CSV</button>
+        </div>
+        {!canExport && <p className="am-muted no-print" style={{ fontSize: '.78rem', textAlign: 'center', margin: 0 }}>Child export is coordinator-only.</p>}
+        <p className="am-muted no-print" style={{ fontSize: '.78rem', textAlign: 'center', margin: 0 }}>
+          Reports never show a child's name unless you choose “One child”.
+        </p>
       </div>
-      <div className="no-print" style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16, alignItems: 'center' }}>
-        <label style={{ fontSize: 13 }}>From <input type="date" value={from} onChange={e => setFrom(e.target.value)} /></label>
-        <label style={{ fontSize: 13 }}>To <input type="date" value={to} onChange={e => setTo(e.target.value)} /></label>
-        <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)}>
-          <option value="">All areas</option>
-          {ref.areas.filter(a => a.active).sort((a, b) => a.sortOrder - b.sortOrder).map(a => (
-            <option key={a.id} value={a.id}>{a.name}</option>
-          ))}
-        </select>
-        {(from || to || areaFilter) && <button onClick={() => { setFrom(''); setTo(''); setAreaFilter('') }}>Clear filters</button>}
-      </div>
-      <div className="no-print" style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
-        <button onClick={exportCsv} disabled={!canExport}>Export CSV</button>
-        <button onClick={exportPdf} disabled={!canExport}>Download PDF</button>
-        {!canExport && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Child CSV export is coordinator-only</span>}
-        <button onClick={() => window.print()}>Print / Save PDF</button>
-      </div>
-      {!report && <p>Nothing to show for this selection.</p>}
-      {report?.kind === 'org' && report.sections.map(s => (
-        <section key={s.programmeId} style={{ marginBottom: 32 }}>
-          <h2>{s.programmeName}</h2>
-          <ReportView scaleMax={s.scaleMax} aggregate={s.report} />
-        </section>
-      ))}
-      {report?.kind === 'aggregate' && <ReportView scaleMax={report.scaleMax} aggregate={report.aggregate} />}
-      {report?.kind === 'child' && <ReportView scaleMax={report.scaleMax} child={report.child} />}
+      <BottomNav />
     </div>
   )
 }
