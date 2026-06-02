@@ -190,6 +190,43 @@ export interface ChildReportInput {
   threshold: number
 }
 
+import type { ClassGroup, Programme } from './types'
+
+export interface OrgSection {
+  programmeId: string
+  programmeName: string
+  scaleMax: number
+  report: Report
+}
+
+export interface OrgSectionsInput {
+  programmes: Programme[]
+  classes: ClassGroup[]
+  areas: DevelopmentArea[]
+  indicators: Indicator[]
+  children: Child[]
+  assessments: Assessment[]
+}
+
+/** One report per active programme, each scoped to that programme's classes/children. */
+export function buildOrgSections(input: OrgSectionsInput): OrgSection[] {
+  const { programmes, classes, areas, indicators, children, assessments } = input
+  return programmes
+    .filter(p => p.active)
+    .map(p => {
+      const classIds = new Set(classes.filter(c => c.programmeId === p.id).map(c => c.id))
+      const kids = children.filter(c => classIds.has(c.classId))
+      const areasP = areas.filter(a => a.programmeId === p.id)
+      const indsP = indicators.filter(i => areasP.some(a => a.id === i.areaId))
+      return {
+        programmeId: p.id,
+        programmeName: p.name,
+        scaleMax: p.scaleMax,
+        report: buildReport({ children: kids, assessments, areas: areasP, indicators: indsP, threshold: p.improvedThreshold ?? 1 }),
+      }
+    })
+}
+
 export function buildChildReport(input: ChildReportInput): ChildReport {
   const { child, history, areas, indicators, threshold } = input
   const activeAreas = areas.filter(a => a.active).sort((a, b) => a.sortOrder - b.sortOrder)

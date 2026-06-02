@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth/auth-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useReportAssessments } from '../hooks/use-report-data'
-import { buildReport, buildChildReport, filterByDate } from '../domain/report-metrics'
+import { buildReport, buildChildReport, buildOrgSections, filterByDate } from '../domain/report-metrics'
 import { aggregateCsv, childCsv } from '../domain/csv'
 import { downloadText } from '../lib/download'
 import { ReportView } from '../components/ReportView'
@@ -73,6 +73,18 @@ export function ReportsScreen() {
       }
     }
 
+    if (scope.kind === 'org') {
+      const orgAreas = areaFilter ? ref.areas.filter(a => a.id === areaFilter) : ref.areas
+      const orgIndicators = ref.indicators.filter(i => orgAreas.some(a => a.id === i.areaId))
+      return {
+        kind: 'org' as const,
+        sections: buildOrgSections({
+          programmes: ref.programmes, classes: ref.classes, areas: orgAreas,
+          indicators: orgIndicators, children: visibleChildren, assessments: dated,
+        }),
+      }
+    }
+
     const children = inScope(visibleChildren)
     // Pick the programme that matches the scope (org falls back to the first programme;
     // multi-programme org rollups are a Milestone 3 concern).
@@ -110,9 +122,12 @@ export function ReportsScreen() {
   const canExport = report != null && (report.kind !== 'child' || isCoordinator)
 
   function exportCsv() {
-    if (!report || !canExport) return
+    if (!report) return
     if (report.kind === 'child') {
       downloadText(`amava-${slugify(report.child.childName)}-${today}.csv`, childCsv(report.child))
+    } else if (report.kind === 'org') {
+      const text = report.sections.map(s => `# ${s.programmeName}\n` + aggregateCsv(s.report)).join('\n')
+      downloadText(`amava-organisation-${today}.csv`, text)
     } else {
       downloadText(`amava-${scopeLabel}-${today}.csv`, aggregateCsv(report.aggregate))
     }
@@ -155,9 +170,15 @@ export function ReportsScreen() {
         {!canExport && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Child CSV export is coordinator-only</span>}
         <button onClick={() => window.print()}>Print / Save PDF</button>
       </div>
-      {report
-        ? <ReportView scaleMax={report.scaleMax} aggregate={report.kind === 'aggregate' ? report.aggregate : undefined} child={report.kind === 'child' ? report.child : undefined} />
-        : <p>Nothing to show for this selection.</p>}
+      {!report && <p>Nothing to show for this selection.</p>}
+      {report?.kind === 'org' && report.sections.map(s => (
+        <section key={s.programmeId} style={{ marginBottom: 32 }}>
+          <h2>{s.programmeName}</h2>
+          <ReportView scaleMax={s.scaleMax} aggregate={s.report} />
+        </section>
+      ))}
+      {report?.kind === 'aggregate' && <ReportView scaleMax={report.scaleMax} aggregate={report.aggregate} />}
+      {report?.kind === 'child' && <ReportView scaleMax={report.scaleMax} child={report.child} />}
     </div>
   )
 }
