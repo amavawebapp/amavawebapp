@@ -5,6 +5,8 @@ import { useReportAssessments } from '../hooks/use-report-data'
 import { buildReport, buildChildReport, buildOrgSections, filterByDate } from '../domain/report-metrics'
 import { aggregateCsv, childCsv } from '../domain/csv'
 import { downloadText } from '../lib/download'
+import { buildReportDoc, formatPeriod } from '../domain/pdf-report'
+import { downloadPdf } from '../lib/pdf'
 import { ReportView } from '../components/ReportView'
 import { IMPROVED_THRESHOLD } from '../config'
 import type { Child } from '../domain/types'
@@ -121,6 +123,26 @@ export function ReportsScreen() {
   // Child reports contain a name, so their CSV export is coordinator-only (spec §5).
   const canExport = report != null && (report.kind !== 'child' || isCoordinator)
 
+  const REG_LINE = 'Amava Oluntu NPC 2011/108066/08 · PBO 930 043 213'
+  function exportPdf() {
+    if (!report) return
+    const period = formatPeriod(from, to)
+    const title = report.kind === 'child' ? report.child.childName : `${scopeLabel.replace(/-/g, ' ')} report`
+    const scaleMax = report.kind === 'org' ? 4 : report.scaleMax
+    const doc = buildReportDoc({
+      kind: report.kind,
+      title: `Amava M&E — ${title}`,
+      period,
+      regLine: REG_LINE,
+      scaleMax,
+      report: report.kind === 'aggregate' ? report.aggregate : undefined,
+      child: report.kind === 'child' ? report.child : undefined,
+      sections: report.kind === 'org' ? report.sections : undefined,
+    })
+    const base = report.kind === 'child' ? slugify(report.child.childName) : scopeLabel
+    downloadPdf(doc, `amava-${base}-${today}.pdf`).catch(e => console.error('PDF export failed', e))
+  }
+
   function exportCsv() {
     if (!report) return
     if (report.kind === 'child') {
@@ -167,6 +189,7 @@ export function ReportsScreen() {
       </div>
       <div className="no-print" style={{ marginBottom: 16, display: 'flex', gap: 8 }}>
         <button onClick={exportCsv} disabled={!canExport}>Export CSV</button>
+        <button onClick={exportPdf} disabled={!canExport}>Download PDF</button>
         {!canExport && <span style={{ fontSize: 12, color: 'var(--muted)' }}>Child CSV export is coordinator-only</span>}
         <button onClick={() => window.print()}>Print / Save PDF</button>
       </div>
