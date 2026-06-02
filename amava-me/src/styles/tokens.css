@@ -1,20 +1,59 @@
 :root {
-  /* Amava 2022 palette */
+  /* raw brand tokens (constant across themes) */
   --slate: #687F8B;
+  --slate-deep: #4d626d;
   --teal: #97D7D9;
   --sand: #E5BF7A;
   --green: #C4E2B7;
+  --green-deep: #6fa173;
   --sage: #9CA297;
   --terracotta: #DD866C;
+  --terracotta-deep: #c96a4f;
 
-  --bg: #ffffff;
-  --text: #2b3338;
-  --muted: #6b7780;
-  --primary: var(--slate);
-  --accent: var(--terracotta);
+  --font-logo: 'Cavorting', 'Brush Script MT', cursive;
+  --font: 'Nunito Sans', -apple-system, system-ui, sans-serif;
 
-  --radius: 12px;
-  --tap-min: 48px; /* phone-friendly minimum tap target */
-  --font-display: 'Cavorting', system-ui, sans-serif;
-  --font-body: 'Minion Pro', Georgia, serif;
+  /* semantic — overridden per theme (defaults = Soft) */
+  --bg: #FBF7F0; --bg-2: #F4EDE1; --surface: #ffffff; --surface-2: #fbf8f3;
+  --ink: #33403b; --ink-soft: #6b746f; --line: #ece3d6;
+  --brand: #687F8B; --accent: #DD866C; --accent-ink: #ffffff;
+  --good: #6fa173; --good-soft: #e6f1de; --warn: #c96a4f; --highlight: #E5BF7A;
+
+  --radius: 20px; --radius-sm: 14px; --radius-lg: 28px; --pad: 16px;
+  --shadow: 0 1px 2px rgba(45,40,30,.04), 0 6px 18px rgba(45,40,30,.06);
+  --shadow-lg: 0 2px 6px rgba(45,40,30,.06), 0 18px 40px rgba(45,40,30,.10);
+  --fs: 1; --tap: 52px;
+
+  /* legacy aliases (back-compat for un-migrated markup) */
+  --text: var(--ink); --muted: var(--ink-soft); --primary: var(--brand);
+  --tap-min: var(--tap); --font-display: var(--font-logo); --font-body: var(--font);
+}
+
+[data-theme="soft"] {
+  --bg:#FBF7F0; --bg-2:#F4EDE1; --surface:#ffffff; --surface-2:#fbf8f3;
+  --ink:#33403b; --ink-soft:#6b746f; --line:#ece3d6;
+  --brand:#687F8B; --accent:#DD866C; --accent-ink:#fff;
+  --good:#6fa173; --good-soft:#e6f1de; --warn:#c96a4f; --highlight:#E5BF7A;
+  --radius:20px; --radius-sm:14px; --radius-lg:28px;
+  --shadow:0 1px 2px rgba(45,40,30,.04), 0 6px 18px rgba(45,40,30,.06);
+  --fs:1; --tap:52px;
+}
+
+[data-theme="garden"] {
+  --bg:#EEF3E6; --bg-2:#e3ecd6; --surface:#ffffff; --surface-2:#f4f8ee;
+  --ink:#2c3a2e; --ink-soft:#5d6b58; --line:#dde6d0;
+  --brand:#4f7d54; --accent:#DD866C; --accent-ink:#fff;
+  --good:#5e9763; --good-soft:#dcead0; --warn:#c96a4f; --highlight:#E5BF7A;
+  --radius:24px; --radius-sm:16px; --radius-lg:34px;
+  --shadow:0 2px 4px rgba(40,55,35,.05), 0 12px 28px rgba(40,55,35,.10);
+  --fs:1.04; --tap:54px;
+}
+
+[data-theme="simple"] {
+  --bg:#ffffff; --bg-2:#f1f4f5; --surface:#ffffff; --surface-2:#f6f8f9;
+  --ink:#1f2a2f; --ink-soft:#566169; --line:#d3dbdf;
+  --brand:#4d626d; --accent:#c96a4f; --accent-ink:#fff;
+  --good:#3f7d56; --good-soft:#e1f0e5; --warn:#bf5236; --highlight:#E5BF7A;
+  --radius:18px; --radius-sm:12px; --radius-lg:22px;
+  --shadow:0 1px 0 rgba(0,0,0,.04); --fs:1.18; --tap:60px;
 }

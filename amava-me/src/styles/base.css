@@ -1,18 +1,10 @@
-* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
 body {
-  margin: 0;
-  font-family: var(--font-body);
-  color: var(--text);
-  background: var(--bg);
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg-2);
+  -webkit-font-smoothing: antialiased;
 }
-h1, h2, h3 { font-family: var(--font-display); color: var(--primary); }
-button {
-  min-height: var(--tap-min);
-  border-radius: var(--radius);
-  border: 1px solid var(--sage);
-  background: #fff;
-  font: inherit;
-  cursor: pointer;
-}
-button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+/* legacy container kept for Settings sub-editors not yet restyled */
 .container { max-width: 640px; margin: 0 auto; padding: 16px; }
+.no-print { }

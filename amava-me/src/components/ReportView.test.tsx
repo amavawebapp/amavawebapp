@@ -19,8 +19,11 @@ const report: Report = {
 describe('ReportView (aggregate)', () => {
   it('shows a headline percentage and the area name and indicator row', () => {
     render(<ReportView scaleMax={4} aggregate={report} />)
+    // % sign rendered in the Donut labels (overall + biggest-wins)
     expect(screen.getAllByText(/100%/).length).toBeGreaterThan(0)
-    expect(screen.getByText('General')).toBeInTheDocument()
+    // area name appears (filter chip + area card)
+    expect(screen.getAllByText('General').length).toBeGreaterThan(0)
+    // indicator names render (biggest-wins + bars)
     expect(screen.getAllByText('Listens').length).toBeGreaterThan(0)
   })
 })

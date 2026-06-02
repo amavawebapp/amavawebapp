@@ -11,11 +11,18 @@ const descriptors = [
 ]
 
 describe('ScaleSelector', () => {
-  it('renders one button per scale point with its label', () => {
+  it('renders one option per scale point with its label', () => {
     render(<ScaleSelector descriptors={descriptors} value={null} onChange={() => {}} />)
     expect(screen.getByRole('button', { name: /Emerging/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Strong/ })).toBeInTheDocument()
   })
+
+  it('marks the selected option with aria-pressed', () => {
+    render(<ScaleSelector descriptors={descriptors} value={3} onChange={() => {}} />)
+    expect(screen.getByRole('button', { name: /Consistent/ })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Strong/ })).toHaveAttribute('aria-pressed', 'false')
+  })
+
   it('calls onChange with the chosen value', async () => {
     const onChange = vi.fn()
     render(<ScaleSelector descriptors={descriptors} value={null} onChange={onChange} />)
