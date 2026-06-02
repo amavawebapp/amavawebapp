@@ -124,3 +124,41 @@ describe('filterByDate', () => {
     expect(filterByDate(list, '2026-05-01', '').map(a => a.id).sort()).toEqual(['b', 'q2'])
   })
 })
+
+import { buildOrgSections } from './report-metrics'
+import type { ClassGroup, Programme } from './types'
+
+describe('buildOrgSections', () => {
+  const programmes: Programme[] = [
+    { id: 'p1', name: 'After-school', scaleMax: 4, scaleDescriptors: [], active: true, improvedThreshold: 1 },
+    { id: 'p2', name: 'ECD', scaleMax: 4, scaleDescriptors: [], active: true, improvedThreshold: 1 },
+  ]
+  const classes: ClassGroup[] = [
+    { id: 'c1', programmeId: 'p1', name: 'Class 1', hasGardenComponent: true, active: true },
+    { id: 'c2', programmeId: 'p2', name: 'ECD A', hasGardenComponent: false, active: true },
+  ]
+  const oAreas: DevelopmentArea[] = [
+    { id: 'a1', programmeId: 'p1', name: 'General', sortOrder: 1, gardenOnly: false, active: true },
+    { id: 'a2', programmeId: 'p2', name: 'Play', sortOrder: 1, gardenOnly: false, active: true },
+  ]
+  const oIndicators: Indicator[] = [
+    { id: 'i1', areaId: 'a1', text: 'Listens', hint: null, sortOrder: 1, active: true },
+    { id: 'i2', areaId: 'a2', text: 'Shares', hint: null, sortOrder: 1, active: true },
+  ]
+  const oChildren: Child[] = [
+    { id: 'A', classId: 'c1', firstName: 'A', surname: 'X', fields: {}, dateStarted: '2026-01-01', isSample: true, active: true },
+    { id: 'B', classId: 'c2', firstName: 'B', surname: 'Y', fields: {}, dateStarted: '2026-01-01', isSample: true, active: true },
+  ]
+  const oAssessments: Assessment[] = [
+    ax('a1b', 'A', 'baseline', '2026-01-10', { i1: 2 }),
+    ax('a1q', 'A', 'quarterly', '2026-04-10', { i1: 4 }),
+  ]
+
+  it('returns one section per active programme, scoped to that programme\'s children', () => {
+    const sections = buildOrgSections({ programmes, classes, areas: oAreas, indicators: oIndicators, children: oChildren, assessments: oAssessments })
+    expect(sections.map(s => s.programmeName)).toEqual(['After-school', 'ECD'])
+    expect(sections[0].report.childrenInScope).toBe(1)
+    expect(sections[0].report.areas[0].indicators[0].nImproved).toBe(1)
+    expect(sections[1].report.childrenInScope).toBe(1)
+  })
+})
