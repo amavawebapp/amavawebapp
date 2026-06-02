@@ -251,7 +251,7 @@ export function ReportsScreen() {
         <button
           className="am-btn am-btn--brand am-btn--block no-print"
           disabled={!canExport}
-          onClick={() => navigate('/report/print', { state: { scope, from, to } })}
+          onClick={() => navigate('/report/print', { state: { scope, from, to, areaFilter } })}
         >
           <Icon name="report" size={20} /> Open printable report
         </button>

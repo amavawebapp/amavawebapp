@@ -4,7 +4,7 @@ import { useAuth } from '../auth/auth-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useReportAssessments } from '../hooks/use-report-data'
 import {
-  buildReport, buildChildReport, filterByDate,
+  buildReport, buildChildReport, buildOrgSections, filterByDate,
   type Report, type ChildReport,
 } from '../domain/report-metrics'
 import type { ChangeClass } from '../domain/assessment-logic'
@@ -20,7 +20,7 @@ type Scope =
   | { kind: 'class'; id: string }
   | { kind: 'child'; id: string }
 
-interface PaperState { scope?: Scope; from?: string; to?: string }
+interface PaperState { scope?: Scope; from?: string; to?: string; areaFilter?: string }
 
 const REG_LINE = 'Amava Oluntu NPC 2011/108066/08 · PBO 930 043 213'
 const round = (x: number) => Math.round(x)
@@ -37,6 +37,7 @@ export function PaperReportScreen() {
   const scope = state?.scope ?? null
   const from = state?.from ?? ''
   const to = state?.to ?? ''
+  const areaFilter = state?.areaFilter ?? ''
 
   const built = useMemo(() => {
     if (!ref || !assessments || !scope) return null
@@ -77,27 +78,43 @@ export function PaperReportScreen() {
       }
     }
 
+    if (scope.kind === 'org') {
+      // Mirror ReportsScreen's org branch exactly: per-programme sections built over
+      // the visible children with the date-filtered assessments. areaFilter is ignored
+      // for org so every section renders its full set of areas/indicators.
+      return {
+        kind: 'org' as const,
+        scopeName: 'Whole organisation',
+        programmeName: '',
+        sections: buildOrgSections({
+          programmes: ref.programmes, classes: ref.classes, areas: ref.areas,
+          indicators: ref.indicators, children: visibleChildren, assessments: dated,
+        }),
+      }
+    }
+
     const children = inScope(visibleChildren)
     const programme =
       scope.kind === 'programme'
         ? ref.programmes.find(p => p.id === scope.id)
-        : scope.kind === 'class'
-          ? ref.programmes.find(p => p.id === ref.classes.find(c => c.id === scope.id)?.programmeId)
-          : ref.programmes[0]
+        : ref.programmes.find(p => p.id === ref.classes.find(c => c.id === scope.id)?.programmeId)
     const areas = ref.areas.filter(a => a.programmeId === programme?.id)
     const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
+    // Mirror ReportsScreen's shownAreas: when an area filter is set, restrict the
+    // single-report path to that one area (org sections render fully, handled above).
+    const shownAreas = areaFilter ? areas.filter(a => a.id === areaFilter) : areas
+    const shownIndicators = indicators.filter(i => shownAreas.some(a => a.id === i.areaId))
     const scopeName =
-      scope.kind === 'org' ? 'Whole organisation'
-      : scope.kind === 'programme' ? (programme?.name ?? 'Programme')
+      scope.kind === 'programme' ? (programme?.name ?? 'Programme')
       : (ref.classes.find(c => c.id === scope.id)?.name ?? 'Class')
     return {
       kind: 'aggregate' as const,
       scaleMax: programme?.scaleMax ?? 4,
       programmeName: programme?.name ?? '',
       scopeName,
-      report: buildReport({ children, assessments: dated, areas, indicators, threshold: programme?.improvedThreshold ?? IMPROVED_THRESHOLD }),
+      report: buildReport({ children, assessments: dated, areas: shownAreas, indicators: shownIndicators, threshold: programme?.improvedThreshold ?? IMPROVED_THRESHOLD }),
     }
-  }, [ref, assessments, scope, session, from, to])
+  }, [ref, assessments, scope, session, from, to, areaFilter])
 
   if (!scope) return <Navigate to="/reports" replace />
   if (!ref || !assessments) return <p className="container">Loading…</p>
@@ -138,7 +155,14 @@ export function PaperReportScreen() {
 
           {built.kind === 'child'
             ? <PaperChild report={built.child} scaleMax={built.scaleMax} />
-            : <PaperAggregate report={built.report} scaleMax={built.scaleMax} />}
+            : built.kind === 'org'
+              ? built.sections.map(s => (
+                  <div key={s.programmeId}>
+                    <div className="paper-h" style={{ fontSize: 17, marginTop: 18 }}>{s.programmeName}</div>
+                    <PaperAggregate report={s.report} scaleMax={s.scaleMax} />
+                  </div>
+                ))
+              : <PaperAggregate report={built.report} scaleMax={built.scaleMax} />}
 
           <div className="paper__foot">
             <span>{REG_LINE}</span>
@@ -216,9 +240,12 @@ function PaperAggregate({ report, scaleMax }: { report: Report; scaleMax: number
 function PaperChild({ report, scaleMax }: { report: ChildReport; scaleMax: number }) {
   const v = deriveChildView(report)
   const pct = v.measured ? round((v.improved / v.measured) * 100) : 0
-  const avgGain = v.trends.length
-    ? (v.trends.reduce((s, t) => s + ((t.latest ?? 0) - (t.baseline ?? 0)), 0) / v.trends.length).toFixed(1)
-    : '0.0'
+  // Average gain over only fully-measured trends (both baseline and latest present);
+  // areas with just a baseline must not distort the average.
+  const measuredTrends = v.trends.filter(t => t.baseline != null && t.latest != null)
+  const avgGain = measuredTrends.length
+    ? (measuredTrends.reduce((s, t) => s + ((t.latest as number) - (t.baseline as number)), 0) / measuredTrends.length).toFixed(1)
+    : '—'
   const chgClass = (c: ChangeClass | null) => c === 'improved' ? 'paper-chg--up' : c === 'declined' ? 'paper-chg--down' : 'paper-chg--flat'
   const chgText = (change: number | null) => change == null ? '—' : change > 0 ? `▲ +${change}` : change < 0 ? `▼ ${change}` : 'same'
   return (
