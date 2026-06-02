@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Amava — redesign prototype</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,400;0,6..12,600;0,6..12,700;0,6..12,800;0,6..12,900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/amava.css" />
+  <style>
+    html, body { margin: 0; height: 100%; background: #ece4d8; }
+    #root { height: 100%; }
+    /* hide unstyled flash */
+    .am-logo { font-synthesis: none; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <template id="__bundler_thumbnail">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <rect width="100" height="100" fill="#687F8B"/>
+      <circle cx="50" cy="50" r="26" fill="#C4E2B7"/>
+      <path d="M38 58c0-12 9-19 21-19 0 12-8 21-21 21" fill="none" stroke="#4f7d54" stroke-width="3" stroke-linecap="round"/>
+    </svg>
+  </template>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="frames/ios-frame.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="app/data.jsx"></script>
+  <script type="text/babel" src="app/ui.jsx"></script>
+  <script type="text/babel" src="app/screens-main.jsx"></script>
+  <script type="text/babel" src="app/screens-reports.jsx"></script>
+  <script type="text/babel" src="app/report-paper.jsx"></script>
+  <script type="text/babel" src="app/app.jsx"></script>
+</body>
+</html>
