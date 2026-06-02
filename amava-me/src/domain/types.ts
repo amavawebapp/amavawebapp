@@ -6,6 +6,8 @@ export interface Programme {
   id: string
   name: string
   scaleMax: number
+  /** "Improved" threshold (change ≥ this). Optional for back-compat with older fixtures. */
+  improvedThreshold?: number
   scaleDescriptors: { value: number; label: string; description: string }[]
   active: boolean
 }

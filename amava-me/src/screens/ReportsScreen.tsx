@@ -68,7 +68,7 @@ export function ReportsScreen() {
         child: buildChildReport({
           child,
           history: dated.filter(a => a.childId === child.id),
-          areas: shownAreas, indicators: shownIndicators, threshold: IMPROVED_THRESHOLD,
+          areas: shownAreas, indicators: shownIndicators, threshold: programme?.improvedThreshold ?? IMPROVED_THRESHOLD,
         }),
       }
     }
@@ -89,7 +89,7 @@ export function ReportsScreen() {
     return {
       kind: 'aggregate' as const,
       scaleMax: programme?.scaleMax ?? 4,
-      aggregate: buildReport({ children, assessments: dated, areas: shownAreas, indicators: shownIndicators, threshold: IMPROVED_THRESHOLD }),
+      aggregate: buildReport({ children, assessments: dated, areas: shownAreas, indicators: shownIndicators, threshold: programme?.improvedThreshold ?? IMPROVED_THRESHOLD }),
     }
   }, [ref, assessments, scope, isCoordinator, me, from, to, areaFilter])
 
