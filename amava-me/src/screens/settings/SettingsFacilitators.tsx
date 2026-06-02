@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { AccountManager } from '../../components/AccountManager'
 import { accountsClient } from '../../data/accounts-client'
 import { SubScreen } from './SubScreen'
+import { SubHead } from './SubHead'
 import { useSettingsEditing } from './use-settings-editing'
 
 export function SettingsFacilitators() {
@@ -12,6 +13,8 @@ export function SettingsFacilitators() {
 
   return (
     <SubScreen title="Facilitators">
+      <SubHead eyebrow="People" title="Who can record assessments"
+        sub="Coordinators see every class and all reports. Facilitators see only their own classes." />
       {!online ? (
         <div className="am-card am-card--pad">
           <p style={{ margin: 0 }}>Editing settings needs an internet connection. Reconnect and try again.</p>

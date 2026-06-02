@@ -4,6 +4,7 @@ import { ThresholdEditor } from '../../components/ThresholdEditor'
 import { configClient } from '../../data/config-client'
 import { Icon } from '../../components/ui'
 import { SubScreen } from './SubScreen'
+import { SubHead } from './SubHead'
 import { useSettingsEditing } from './use-settings-editing'
 
 export function SettingsScale() {
@@ -16,6 +17,8 @@ export function SettingsScale() {
 
   return (
     <SubScreen title="Rating scale">
+      <SubHead eyebrow="How you score" title="The rating scale"
+        sub="Every indicator is scored on this scale. Facilitators tap a number during an assessment." />
       {!online ? (
         <div className="am-card am-card--pad">
           <p style={{ margin: 0 }}>Editing settings needs an internet connection. Reconnect and try again.</p>
