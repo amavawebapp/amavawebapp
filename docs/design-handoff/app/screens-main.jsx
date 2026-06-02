@@ -109,11 +109,84 @@ function HomeScreen({ nav }) {
   );
 }
 
+/* ============================ ADD A CHILD (bottom sheet) ============================ */
+function AddChildSheet({ classId, onClose, onAdd }) {
+  const today = new Date().toISOString().slice(0, 10);
+  const [first, setFirst] = useStateS('');
+  const [surname, setSurname] = useStateS('');
+  const [cid, setCid] = useStateS(classId);
+  const [sample, setSample] = useStateS(true);
+  const [start, setStart] = useStateS(today);
+  const ready = first.trim() && surname.trim();
+
+  return (
+    <div className="am-scrim" onClick={onClose}>
+      <div className="am-sheet" onClick={e => e.stopPropagation()}>
+        <div className="am-sheet__grip" />
+        <div className="am-sheet__head">
+          <div className="am-ava" style={{ background: 'var(--brand)', width: 40, height: 40, flexBasis: 40, borderRadius: 12 }}>
+            <Icon name="plus" size={22} color="#fff" />
+          </div>
+          <div className="am-h2">Add a child</div>
+          <button className="am-sheet__x" onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        <div className="am-stack" style={{ gap: 16 }}>
+          <label className="am-field">
+            <span className="am-field__lab">First name</span>
+            <input className="am-input" value={first} onChange={e => setFirst(e.target.value)} placeholder="e.g. Aphiwe" autoFocus />
+          </label>
+          <label className="am-field">
+            <span className="am-field__lab">Surname</span>
+            <input className="am-input" value={surname} onChange={e => setSurname(e.target.value)} placeholder="e.g. Mbeki" />
+          </label>
+
+          <div className="am-field">
+            <span className="am-field__lab">Class</span>
+            <div className="am-hscroll">
+              {AMAVA.classes.map(c => (
+                <button key={c.id} className={'am-chip' + (cid === c.id ? ' am-chip--on' : '')} onClick={() => setCid(c.id)}>
+                  <span className="am-chip__dot" style={{ background: cid === c.id ? '#fff' : c.color }} />
+                  {c.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="am-ctrl">
+            <div style={{ flex: 1 }}>
+              <div className="am-ctrl__lab">Part of the research sample</div>
+              <div className="am-ctrl__sub">Their scores will count in impact reports.</div>
+            </div>
+            <button className={'am-switch' + (sample ? ' on' : '')} role="switch" aria-checked={sample}
+              aria-label="Part of the research sample" onClick={() => setSample(s => !s)}>
+              <span className="am-switch__knob" />
+            </button>
+          </div>
+
+          <label className="am-field">
+            <span className="am-field__lab">Start date</span>
+            <input className="am-input" type="date" value={start} onChange={e => setStart(e.target.value)} />
+          </label>
+
+          <button className="am-btn am-btn--primary am-btn--block am-btn--lg" disabled={!ready}
+            onClick={() => onAdd({ firstName: first.trim(), surname: surname.trim(), classId: cid, sample, started: start })}>
+            <Icon name="check" size={20} stroke={3} /> Add child
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ============================ CHILD LIST ============================ */
 function ChildListScreen({ nav, params }) {
   const cls = AMAVA.classes.find(c => c.id === params.classId);
   const [q, setQ] = useStateS('');
-  const kids = AMAVA.children.filter(c => c.classId === params.classId);
+  const [sheet, setSheet] = useStateS(false);
+  const [added, setAdded] = useStateS([]);
+  const seed = AMAVA.children.filter(c => c.classId === params.classId);
+  const kids = [...added.filter(c => c.classId === params.classId), ...seed];
   const filtered = kids.filter(k => (k.firstName + ' ' + k.surname).toLowerCase().includes(q.toLowerCase()));
   const done = kids.filter(k => k.latest).length;
 
@@ -151,10 +224,18 @@ function ChildListScreen({ nav, params }) {
           );
         })}
 
-        <button className="am-btn am-btn--ghost am-btn--block" style={{ marginTop: 6, borderStyle: 'dashed' }}>
+        <button className="am-btn am-btn--ghost am-btn--block" style={{ marginTop: 6, borderStyle: 'dashed' }} onClick={() => setSheet(true)}>
           <Icon name="plus" size={22} /> Add a child
         </button>
       </div>
+      {sheet && (
+        <AddChildSheet classId={params.classId} onClose={() => setSheet(false)}
+          onAdd={(c) => {
+            setAdded(a => [{ ...c, id: 'new-' + Date.now(), garden: cls?.garden, baseline: null, latest: null }, ...a]);
+            setSheet(false);
+            nav.toast && nav.toast(`Added ${c.firstName} — tap to start baseline`);
+          }} />
+      )}
       <BottomNav nav={nav} active="home" />
     </div>
   );
@@ -343,4 +424,4 @@ function BottomNav({ nav, active }) {
   );
 }
 
-Object.assign(window, { LoginScreen, HomeScreen, ChildListScreen, AssessScreen, BottomNav });
+Object.assign(window, { LoginScreen, HomeScreen, ChildListScreen, AddChildSheet, AssessScreen, BottomNav });
