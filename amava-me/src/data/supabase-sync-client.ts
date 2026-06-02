@@ -41,6 +41,7 @@ export class SupabaseSyncClient implements SyncClient {
       })),
       facilitators: (facilitators.data ?? []).map((f): Facilitator => ({
         id: f.id, name: f.name, role: f.role, classIds: f.class_ids,
+        username: f.username ?? undefined, active: f.active ?? true,
       })),
       fetchedAt: new Date().toISOString(),
     }

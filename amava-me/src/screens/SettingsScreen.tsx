@@ -10,6 +10,8 @@ import { ScaleEditor } from '../components/ScaleEditor'
 import { ThresholdEditor } from '../components/ThresholdEditor'
 import { ProgrammeClassManager } from '../components/ProgrammeClassManager'
 import { rosterClient } from '../data/roster-client'
+import { AccountManager } from '../components/AccountManager'
+import { accountsClient } from '../data/accounts-client'
 
 export function SettingsScreen() {
   const { session } = useAuth()
@@ -58,6 +60,16 @@ export function SettingsScreen() {
         onRenameClass={(id, name) => run(rosterClient.updateClass(id, { name }))}
         onToggleGarden={(id, hasGardenComponent) => run(rosterClient.updateClass(id, { hasGardenComponent }))}
         onToggleClassActive={(id, active) => run(rosterClient.setActive('class_group', id, active))}
+      />
+
+      <h2>Accounts</h2>
+      <AccountManager
+        facilitators={ref.facilitators}
+        classes={ref.classes}
+        onCreate={input => run(accountsClient.createUser(input.username, input.password, input.name, input.role, input.classIds))}
+        onSetPassword={(userId, password) => run(accountsClient.setPassword(userId, password))}
+        onUpdate={(userId, name, role, classIds) => run(accountsClient.updateFacilitator(userId, name, role, classIds))}
+        onSetActive={(userId, active) => run(accountsClient.setActive(userId, active))}
       />
 
       <h2>Areas &amp; indicators</h2>

@@ -56,6 +56,8 @@ export interface Facilitator {
   name: string
   role: Role
   classIds: string[]
+  username?: string
+  active?: boolean
 }
 
 export interface ScoreEntry {
