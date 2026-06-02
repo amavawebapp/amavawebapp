@@ -74,11 +74,13 @@ export function ReportsScreen() {
     }
 
     if (scope.kind === 'org') {
+      const orgAreas = areaFilter ? ref.areas.filter(a => a.id === areaFilter) : ref.areas
+      const orgIndicators = ref.indicators.filter(i => orgAreas.some(a => a.id === i.areaId))
       return {
         kind: 'org' as const,
         sections: buildOrgSections({
-          programmes: ref.programmes, classes: ref.classes, areas: ref.areas,
-          indicators: ref.indicators, children: visibleChildren, assessments: dated,
+          programmes: ref.programmes, classes: ref.classes, areas: orgAreas,
+          indicators: orgIndicators, children: visibleChildren, assessments: dated,
         }),
       }
     }

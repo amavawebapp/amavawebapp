@@ -57,6 +57,7 @@ export function ChildListScreen() {
       {canManage && !editing && <button className="primary" onClick={() => setEditing('new')}>Add child</button>}
       {canManage && editing && (
         <ChildEditor
+          key={editing === 'new' ? 'new' : editing.id}
           classes={ref.classes.filter(c => c.active)}
           allowClassChange={isCoordinator}
           initial={editing === 'new'
