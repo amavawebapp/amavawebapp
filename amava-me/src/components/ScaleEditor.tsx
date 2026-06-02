@@ -18,25 +18,27 @@ export function ScaleEditor({ descriptors, hasData, onSave }: Props) {
   const normalised = points.map((p, i) => ({ ...p, value: i + 1 }))
   const err = validateScale(normalised.length, normalised)
   return (
-    <div>
+    <div className="am-stack" style={{ gap: 12 }}>
       {hasData && (
-        <p style={{ color: 'var(--terracotta)' }}>
+        <div className="am-card am-card--pad" style={{ color: 'var(--warn)', fontSize: '.92rem' }}>
           ⚠ Assessments already exist. Changing the scale affects future assessments only — past scores keep their original scale, so comparisons across the change may be harder to read.
-        </p>
-      )}
-      {points.map((p, i) => (
-        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 4, alignItems: 'center' }}>
-          <strong style={{ width: 20 }}>{i + 1}</strong>
-          <input aria-label={`point ${i + 1} label`} value={p.label} onChange={e => update(i, 'label', e.target.value)} placeholder="label" />
-          <input aria-label={`point ${i + 1} description`} value={p.description} onChange={e => update(i, 'description', e.target.value)} placeholder="description" style={{ flex: 1 }} />
         </div>
-      ))}
-      <div style={{ display: 'flex', gap: 8, margin: '8px 0' }}>
-        <button onClick={addPoint} disabled={points.length >= 10}>Add point</button>
-        <button onClick={removeLast} disabled={points.length <= 2}>Remove last</button>
+      )}
+      <div className="am-stack" style={{ gap: 8 }}>
+        {points.map((p, i) => (
+          <div key={i} className="am-defrow" style={{ alignItems: 'center' }}>
+            <span className="am-defrow__num">{i + 1}</span>
+            <input className="am-input" aria-label={`point ${i + 1} label`} value={p.label} onChange={e => update(i, 'label', e.target.value)} placeholder="label" style={{ flex: '1 1 100px' }} />
+            <input className="am-input" aria-label={`point ${i + 1} description`} value={p.description} onChange={e => update(i, 'description', e.target.value)} placeholder="description" style={{ flex: '2 1 140px' }} />
+          </div>
+        ))}
       </div>
-      {err && <span style={{ color: 'var(--terracotta)' }}>{err}</span>}
-      <button className="primary" style={{ marginLeft: 8 }} disabled={!!err} onClick={() => onSave(normalised.length, normalised)}>Save scale</button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+        <button className="am-btn" onClick={addPoint} disabled={points.length >= 10}>Add point</button>
+        <button className="am-btn am-btn--ghost" onClick={removeLast} disabled={points.length <= 2}>Remove last</button>
+        <button className="am-btn am-btn--primary" disabled={!!err} onClick={() => onSave(normalised.length, normalised)}>Save scale</button>
+      </div>
+      {err && <span style={{ color: 'var(--warn)' }}>{err}</span>}
     </div>
   )
 }
