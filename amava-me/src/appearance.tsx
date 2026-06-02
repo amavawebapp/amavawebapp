@@ -3,6 +3,8 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 export type ThemeName = 'soft' | 'garden' | 'simple'
 const THEME_KEY = 'amava.theme'
 const FS_KEY = 'amava.fsUser'
+const FS_MIN = 0.9, FS_MAX = 1.35
+function clampFs(n: number): number { return Math.min(FS_MAX, Math.max(FS_MIN, n)) }
 
 function readTheme(): ThemeName {
   const v = localStorage.getItem(THEME_KEY)
@@ -10,7 +12,7 @@ function readTheme(): ThemeName {
 }
 function readFs(): number {
   const v = Number(localStorage.getItem(FS_KEY))
-  return v >= 0.9 && v <= 1.35 ? v : 1
+  return Number.isFinite(v) && v > 0 ? clampFs(v) : 1
 }
 
 interface AppearanceValue {
@@ -32,7 +34,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
 
   function setTheme(t: ThemeName) { localStorage.setItem(THEME_KEY, t); setThemeState(t) }
   function setFsUser(n: number) {
-    const clamped = Math.min(1.35, Math.max(0.9, n))
+    const clamped = clampFs(n)
     localStorage.setItem(FS_KEY, String(clamped)); setFsState(clamped)
   }
 
