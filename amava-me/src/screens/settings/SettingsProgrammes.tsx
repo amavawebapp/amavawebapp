@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom'
 import { ProgrammeClassManager } from '../../components/ProgrammeClassManager'
 import { rosterClient } from '../../data/roster-client'
 import { SubScreen } from './SubScreen'
+import { SubHead } from './SubHead'
 import { useSettingsEditing } from './use-settings-editing'
 
 export function SettingsProgrammes() {
@@ -10,8 +11,24 @@ export function SettingsProgrammes() {
   if (!ref) return <p className="container">Loading…</p>
   if (!isCoordinator) return <Navigate to="/settings" replace />
 
+  const programme = ref.programmes[0]
+  const areaCount = programme ? ref.areas.filter(a => a.programmeId === programme.id).length : 0
+  const indicatorAreaIds = new Set(ref.areas.filter(a => !programme || a.programmeId === programme.id).map(a => a.id))
+  const indicatorCount = ref.indicators.filter(i => indicatorAreaIds.has(i.areaId)).length
+  const anyGarden = ref.classes.some(c => c.hasGardenComponent)
+
   return (
     <SubScreen title="Programmes & classes">
+      <SubHead eyebrow="Programme" title={programme?.name ?? 'Programme'}
+        sub="The areas, indicators and classes you assess against." />
+      {programme && (
+        <div className="am-card am-card--pad" style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+          <span className="am-chip" style={{ cursor: 'default' }}>{areaCount} areas</span>
+          <span className="am-chip" style={{ cursor: 'default' }}>{indicatorCount} indicators</span>
+          <span className="am-chip" style={{ cursor: 'default' }}>1–{programme.scaleMax} scale</span>
+          {anyGarden && <span className="am-chip" style={{ cursor: 'default' }}>Garden component</span>}
+        </div>
+      )}
       {!online ? (
         <div className="am-card am-card--pad">
           <p style={{ margin: 0 }}>Editing settings needs an internet connection. Reconnect and try again.</p>

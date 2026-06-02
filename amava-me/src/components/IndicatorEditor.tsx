@@ -13,13 +13,13 @@ export function IndicatorEditor({ indicator, onSaveText, onMove, onToggleActive 
   const [hint, setHint] = useState(indicator.hint ?? '')
   const dirty = text !== indicator.text || hint !== (indicator.hint ?? '')
   return (
-    <div style={{ opacity: indicator.active ? 1 : 0.5, display: 'flex', gap: 8, alignItems: 'center', padding: '4px 0' }}>
-      <input aria-label="indicator text" value={text} onChange={e => setText(e.target.value)} style={{ flex: 1 }} />
-      <input aria-label="indicator hint" value={hint} onChange={e => setHint(e.target.value)} placeholder="hint (optional)" style={{ width: 150 }} />
-      {dirty && <button onClick={() => onSaveText(indicator.id, text.trim(), hint.trim())} disabled={!text.trim()}>Save</button>}
-      <button aria-label="move indicator up" onClick={() => onMove(indicator.id, 'up')}>↑</button>
-      <button aria-label="move indicator down" onClick={() => onMove(indicator.id, 'down')}>↓</button>
-      <button onClick={() => onToggleActive(indicator.id, !indicator.active)}>{indicator.active ? 'Retire' : 'Restore'}</button>
+    <div style={{ opacity: indicator.active ? 1 : 0.55, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+      <input className="am-input" aria-label="indicator text" value={text} onChange={e => setText(e.target.value)} style={{ flex: '2 1 160px' }} />
+      <input className="am-input" aria-label="indicator hint" value={hint} onChange={e => setHint(e.target.value)} placeholder="hint (optional)" style={{ flex: '1 1 120px' }} />
+      {dirty && <button className="am-btn" onClick={() => onSaveText(indicator.id, text.trim(), hint.trim())} disabled={!text.trim()}>Save</button>}
+      <button className="am-btn am-btn--ghost" aria-label="move indicator up" onClick={() => onMove(indicator.id, 'up')}>↑</button>
+      <button className="am-btn am-btn--ghost" aria-label="move indicator down" onClick={() => onMove(indicator.id, 'down')}>↓</button>
+      <button className="am-btn am-btn--ghost" onClick={() => onToggleActive(indicator.id, !indicator.active)}>{indicator.active ? 'Retire' : 'Restore'}</button>
     </div>
   )
 }

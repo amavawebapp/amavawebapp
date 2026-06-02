@@ -3,6 +3,7 @@ import { AreaEditor } from '../../components/AreaEditor'
 import { configClient } from '../../data/config-client'
 import { reorder } from '../../domain/config-logic'
 import { SubScreen } from './SubScreen'
+import { SubHead } from './SubHead'
 import { useSettingsEditing } from './use-settings-editing'
 
 export function SettingsAreas() {
@@ -17,6 +18,8 @@ export function SettingsAreas() {
 
   return (
     <SubScreen title="Areas & indicators">
+      <SubHead eyebrow="What you assess" title="Development areas"
+        sub="Each child is scored on every indicator below. Garden indicators only apply to garden classes." />
       {!online ? (
         <div className="am-card am-card--pad">
           <p style={{ margin: 0 }}>Editing settings needs an internet connection. Reconnect and try again.</p>
