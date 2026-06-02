@@ -8,7 +8,7 @@ const classes: ClassGroup[] = [
   { id: 'c1', programmeId: 'p', name: 'Class 1', hasGardenComponent: true, active: true },
 ]
 const facilitators: Facilitator[] = [
-  { id: 'u1', name: 'Coordinator', role: 'coordinator', classIds: [], username: 'admin', active: true },
+  { id: 'u1', name: 'Nomsa K', role: 'coordinator', classIds: [], username: 'admin', active: true },
 ]
 const noop = () => {}
 const base = { facilitators, classes, onCreate: noop, onSetPassword: noop, onUpdate: noop, onSetActive: noop }
@@ -16,7 +16,7 @@ const base = { facilitators, classes, onCreate: noop, onSetPassword: noop, onUpd
 describe('AccountManager', () => {
   it('lists existing accounts', () => {
     render(<AccountManager {...base} />)
-    expect(screen.getByText(/Coordinator/)).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Nomsa K')).toBeInTheDocument()
     expect(screen.getByText(/admin/)).toBeInTheDocument()
   })
   it('creates an account with the entered details', async () => {

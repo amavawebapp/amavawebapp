@@ -55,7 +55,7 @@ export function AccountManager({ facilitators, classes, onCreate, onSetPassword,
         <input aria-label="new password" type="text" placeholder="Password (min 8 chars)" value={password} onChange={e => setPassword(e.target.value)} />
         <select aria-label="new role" value={role} onChange={e => setRole(e.target.value)}>
           <option value="facilitator">Facilitator</option>
-          <option value="coordinator">Co-ordinator</option>
+          <option value="coordinator">Coordinator</option>
         </select>
         <ClassChecks classes={activeClasses} selected={classIds} onToggle={toggle} labelPrefix="assign" />
         {error && <p style={{ color: 'var(--terracotta)' }}>{error}</p>}
@@ -93,12 +93,11 @@ function AccountRow({ f, classes, onUpdate, onSetActive, resetOpen, onOpenReset,
   return (
     <div style={{ border: '1px solid var(--sage)', borderRadius: 'var(--radius)', padding: 12, marginBottom: 8, opacity: active ? 1 : 0.5 }}>
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
-        <span style={{ fontWeight: 500 }}>{f.name}</span>
         <input aria-label={`name ${f.username ?? f.id}`} value={name} onChange={e => setName(e.target.value)} />
         <span style={{ color: 'var(--muted)', fontSize: 13 }}>{f.username ?? '(email login)'}</span>
         <select aria-label={`role ${f.username ?? f.id}`} value={role} onChange={e => setRole(e.target.value as Facilitator['role'])}>
           <option value="facilitator">Facilitator</option>
-          <option value="coordinator">Co-ordinator</option>
+          <option value="coordinator">Coordinator</option>
         </select>
         <button onClick={() => onSetActive(f.id, !active)}>{active ? 'Deactivate' : 'Reactivate'}</button>
         <button onClick={onOpenReset}>Reset password</button>
