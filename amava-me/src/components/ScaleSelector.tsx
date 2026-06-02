@@ -1,3 +1,4 @@
+import { Icon } from './ui'
 import type { Programme } from '../domain/types'
 
 interface Props {
@@ -8,19 +9,26 @@ interface Props {
 
 export function ScaleSelector({ descriptors, value, onChange }: Props) {
   return (
-    <div role="group" style={{ display: 'grid', gap: 8 }}>
-      {descriptors.map(d => (
-        <button
-          key={d.value}
-          type="button"
-          className={value === d.value ? 'primary' : ''}
-          aria-pressed={value === d.value}
-          onClick={() => onChange(d.value)}
-        >
-          <strong>{d.value} · {d.label}</strong>
-          <div style={{ fontSize: 13, opacity: 0.8 }}>{d.description}</div>
-        </button>
-      ))}
+    <div className="am-scale">
+      {descriptors.map(d => {
+        const on = value === d.value
+        return (
+          <button
+            type="button"
+            key={d.value}
+            className={'am-scaleopt' + (on ? ' on' : '')}
+            aria-pressed={on}
+            onClick={() => onChange(d.value)}
+          >
+            <span className="am-scaleopt__num">{d.value}</span>
+            <span style={{ flex: 1 }}>
+              <span className="am-scaleopt__lab">{d.label}</span>
+              <span className="am-scaleopt__desc" style={{ display: 'block' }}>{d.description}</span>
+            </span>
+            {on && <Icon name="check" size={22} color="var(--accent)" stroke={3} />}
+          </button>
+        )
+      })}
     </div>
   )
 }
