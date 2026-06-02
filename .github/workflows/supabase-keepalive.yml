@@ -1,0 +1,45 @@
+name: Supabase keep-alive
+
+# Supabase free-tier projects pause after 7 days with no activity. This job makes
+# a tiny read request on a schedule so the project always registers as "active"
+# and never pauses. It runs daily (well inside the 7-day window) so that even if
+# GitHub delays or skips a scheduled run during high load, we stay safe.
+#
+# Requires two repository secrets (Settings -> Secrets and variables -> Actions):
+#   SUPABASE_URL        e.g. https://YOUR-PROJECT.supabase.co
+#   SUPABASE_ANON_KEY   the project's anon/public API key
+# See docs/ops/supabase-keepalive.md for setup.
+
+on:
+  schedule:
+    - cron: '17 6 * * *' # daily at 06:17 UTC (off the hour to reduce scheduler delay)
+  workflow_dispatch: {} # allows a manual run from the Actions tab to test
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::SUPABASE_URL / SUPABASE_ANON_KEY secrets are not set. See docs/ops/supabase-keepalive.md"
+            exit 1
+          fi
+          # A read on the public 'programme' table. RLS returns an empty array for
+          # the anon role, which is fine — the request still reaches the database
+          # and counts as activity. We only care that the server responded.
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/programme?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "Supabase responded with HTTP $code"
+          # 2xx/3xx/4xx all mean the server is awake and processed the request.
+          # Only a connection failure (000) or a 5xx means something is wrong.
+          if [ "$code" -lt 200 ] || [ "$code" -ge 500 ]; then
+            echo "::error::Keep-alive ping failed (HTTP $code). The project may be paused or unreachable."
+            exit 1
+          fi
+          echo "Keep-alive ping OK."
