@@ -359,3 +359,76 @@ textarea.am-input { padding: 12px 16px; min-height: 92px; line-height: 1.4; }
   font-weight: 700; font-size: .9rem; box-shadow: var(--shadow-lg); z-index: 40;
   display: flex; align-items: center; gap: 9px; animation: amfade .25s both; white-space: nowrap;
 }
+
+/* ---- Bottom sheet (modal) ---- */
+.am-scrim {
+  position: absolute; inset: 0; z-index: 30;
+  background: rgba(35,30,22,.42);
+  display: flex; flex-direction: column; justify-content: flex-end;
+  animation: amscrim .2s both;
+}
+@keyframes amscrim { from { opacity: 0; } to { opacity: 1; } }
+.am-sheet {
+  background: var(--surface);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: 10px 16px calc(18px + env(safe-area-inset-bottom, 18px));
+  box-shadow: 0 -12px 40px rgba(45,40,30,.18);
+  max-height: 92%; overflow-y: auto;
+  animation: amsheet .34s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes amsheet { from { transform: translateY(100%); } to { transform: none; } }
+.am-sheet__grip { width: 42px; height: 5px; border-radius: 999px; background: var(--line); margin: 4px auto 16px; }
+.am-sheet__head { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
+.am-sheet__head .am-h2 { flex: 1; }
+.am-sheet__x {
+  width: 40px; height: 40px; flex: 0 0 40px; border-radius: 999px; border: none; cursor: pointer;
+  background: var(--surface-2); color: var(--ink-soft); display: grid; place-items: center; font-size: 22px; line-height: 1;
+}
+.am-sheet__x:active { transform: scale(.94); }
+
+/* ---- Toggle switch ---- */
+.am-switch {
+  width: 54px; height: 32px; flex: 0 0 54px; border-radius: 999px; border: none; padding: 0;
+  background: var(--line); position: relative; cursor: pointer; transition: background .18s ease;
+}
+.am-switch.on { background: var(--good); }
+.am-switch__knob {
+  position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 999px;
+  background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.22); transition: left .18s cubic-bezier(.2,.8,.2,1);
+}
+.am-switch.on .am-switch__knob { left: 25px; }
+
+/* ---- Control row ---- */
+.am-ctrl {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--surface); border-radius: var(--radius); padding: 15px 16px;
+  box-shadow: var(--shadow); border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+[data-theme="simple"] .am-ctrl { border: 1.5px solid var(--line); box-shadow: none; }
+.am-ctrl__lab { font-weight: 700; font-size: 1.02rem; }
+.am-ctrl__sub { color: var(--ink-soft); font-size: .84rem; margin-top: 2px; }
+
+/* ---- Range slider ---- */
+.am-range {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 10px; border-radius: 999px;
+  background: var(--surface-2); border: 1px solid var(--line); outline: none; margin: 0;
+  accent-color: var(--accent);
+}
+.am-range::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 32px; height: 32px; border-radius: 999px;
+  background: var(--accent); border: 4px solid var(--surface); box-shadow: 0 2px 6px rgba(0,0,0,.2); cursor: pointer;
+}
+.am-range::-moz-range-thumb {
+  width: 32px; height: 32px; border-radius: 999px;
+  background: var(--accent); border: 4px solid var(--surface); box-shadow: 0 2px 6px rgba(0,0,0,.2); cursor: pointer;
+}
+
+/* ---- Read-only definition row (rating scale) ---- */
+.am-defrow {
+  display: flex; align-items: flex-start; gap: 14px; padding: 13px 15px;
+  border-radius: var(--radius-sm); border: 1.5px solid var(--line); background: var(--surface);
+}
+.am-defrow__num {
+  width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: grid; place-items: center;
+  font-weight: 900; font-size: 1.05rem; background: var(--surface-2); color: var(--brand);
+}

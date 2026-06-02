@@ -9,60 +9,6 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
   "showFrame": true
 }/*EDITMODE-END*/;
 
-/* simple Settings screen (coordinator) */
-function SettingsScreen({ nav }) {
-  const groups = [
-    { h: 'Programme set-up', rows: [
-      { t: 'Programmes & classes', s: '1 programme · 3 classes', icon: 'people' },
-      { t: 'Areas & indicators', s: '5 areas · 24 indicators', icon: 'spark' },
-      { t: 'Rating scale', s: '1–4 · Emerging → Strong', icon: 'chart' },
-    ]},
-    { h: 'People', rows: [
-      { t: 'Facilitator accounts', s: '6 facilitators', icon: 'people' },
-    ]},
-    { h: 'This phone', rows: [
-      { t: 'Offline data', s: 'Everything saved · synced today', icon: 'wifi' },
-    ]},
-  ];
-  return (
-    <div className="am-screen">
-      <AppBar title="Settings" onBack={() => nav.go('home')} />
-      <div className="am-scroll am-pad am-anim" style={{ paddingTop: 14, paddingBottom: 24, display: 'flex', flexDirection: 'column', gap: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Avatar name={AMAVA.user.name} color="var(--brand)" size={56} />
-          <div>
-            <div style={{ fontWeight: 800, fontSize: '1.15rem' }}>{AMAVA.user.name}</div>
-            <div className="am-row__sub" style={{ textTransform: 'capitalize' }}>{AMAVA.user.role}</div>
-          </div>
-        </div>
-        {groups.map(g => (
-          <div key={g.h}>
-            <div className="am-sectionlab"><span className="am-eyebrow">{g.h}</span></div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 8 }}>
-              {g.rows.map(r => (
-                <div key={r.t} className="am-row" style={{ cursor: 'pointer' }}>
-                  <div className="am-ava" style={{ width: 40, height: 40, flexBasis: 40, borderRadius: 12, background: 'var(--surface-2)' }}>
-                    <Icon name={r.icon} size={20} color="var(--brand)" />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="am-row__title" style={{ fontSize: '1rem' }}>{r.t}</div>
-                    <div className="am-row__sub">{r.s}</div>
-                  </div>
-                  <Icon name="chevron" size={20} color="var(--sage)" />
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
-        <button className="am-btn am-btn--ghost am-btn--block" style={{ marginTop: 6, color: 'var(--warn)', borderColor: 'var(--line)' }} onClick={() => nav.go('login')}>
-          <Icon name="logout" size={20} /> Sign out
-        </button>
-      </div>
-      <BottomNav nav={nav} active="settings" />
-    </div>
-  );
-}
-
 const SCREENS = {
   login: LoginScreen,
   home: HomeScreen,
@@ -70,6 +16,11 @@ const SCREENS = {
   assess: AssessScreen,
   reports: ReportsScreen,
   settings: SettingsScreen,
+  'settings-programmes': SettingsProgrammes,
+  'settings-areas': SettingsAreas,
+  'settings-scale': SettingsScale,
+  'settings-facilitators': SettingsFacilitators,
+  'settings-offline': SettingsOffline,
 };
 
 function App() {
@@ -82,6 +33,7 @@ function App() {
       if (params.saved) setToast(`Saved — ${params.saved}'s assessment`);
       setRoute({ name, params });
     },
+    toast(msg) { setToast(msg); },
   };
 
   useEffectA(() => {
@@ -107,13 +59,13 @@ function App() {
             {t.showFrame ? (
               <IOSDevice>
                 <div style={{ height: '100%' }} key={route.name + JSON.stringify(route.params)}>
-                  <Screen nav={nav} params={route.params} />
+                  <Screen nav={nav} params={route.params} t={t} setTweak={setTweak} />
                 </div>
               </IOSDevice>
             ) : (
               <div style={{ width: 402, height: 874, borderRadius: 28, overflow: 'hidden', boxShadow: 'var(--shadow-lg)', background: 'var(--bg)' }}
                 key={route.name + JSON.stringify(route.params)}>
-                <Screen nav={nav} params={route.params} />
+                <Screen nav={nav} params={route.params} t={t} setTweak={setTweak} />
               </div>
             )}
             <Toast show={!!toast}>{toast}</Toast>

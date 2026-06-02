@@ -8,6 +8,11 @@ import { AssessChildRoute } from './screens/AssessChildRoute'
 import { ReportsScreen } from './screens/ReportsScreen'
 import { PaperReportScreen } from './screens/PaperReportScreen'
 import { SettingsScreen } from './screens/SettingsScreen'
+import { SettingsProgrammes } from './screens/settings/SettingsProgrammes'
+import { SettingsAreas } from './screens/settings/SettingsAreas'
+import { SettingsScale } from './screens/settings/SettingsScale'
+import { SettingsFacilitators } from './screens/settings/SettingsFacilitators'
+import { SettingsOffline } from './screens/settings/SettingsOffline'
 
 export default function App() {
   return (
@@ -19,6 +24,11 @@ export default function App() {
       <Route path="/reports" element={<RequireAuth><AppServicesProvider><ReportsScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/report/print" element={<RequireAuth><AppServicesProvider><PaperReportScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/settings" element={<RequireAuth><AppServicesProvider><SettingsScreen /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/programmes" element={<RequireAuth><AppServicesProvider><SettingsProgrammes /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/areas" element={<RequireAuth><AppServicesProvider><SettingsAreas /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/scale" element={<RequireAuth><AppServicesProvider><SettingsScale /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/facilitators" element={<RequireAuth><AppServicesProvider><SettingsFacilitators /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/offline" element={<RequireAuth><AppServicesProvider><SettingsOffline /></AppServicesProvider></RequireAuth>} />
     </Routes>
   )
 }
