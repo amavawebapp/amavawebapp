@@ -8,6 +8,8 @@ import { reorder } from '../domain/config-logic'
 import { AreaEditor } from '../components/AreaEditor'
 import { ScaleEditor } from '../components/ScaleEditor'
 import { ThresholdEditor } from '../components/ThresholdEditor'
+import { ProgrammeClassManager } from '../components/ProgrammeClassManager'
+import { rosterClient } from '../data/roster-client'
 
 export function SettingsScreen() {
   const { session } = useAuth()
@@ -44,6 +46,19 @@ export function SettingsScreen() {
       <h1>Settings</h1>
       {busy && <p className="no-print" style={{ color: 'var(--muted)' }}>Saving…</p>}
       {error && <p style={{ color: 'var(--terracotta)' }}>{error}</p>}
+
+      <h2>Programmes &amp; classes</h2>
+      <ProgrammeClassManager
+        programmes={ref.programmes}
+        classes={ref.classes}
+        onAddProgramme={name => run(rosterClient.addProgramme(name))}
+        onRenameProgramme={(id, name) => run(rosterClient.updateProgramme(id, { name }))}
+        onToggleProgrammeActive={(id, active) => run(rosterClient.setActive('programme', id, active))}
+        onAddClass={(programmeId, name) => run(rosterClient.addClass(programmeId, name, false))}
+        onRenameClass={(id, name) => run(rosterClient.updateClass(id, { name }))}
+        onToggleGarden={(id, hasGardenComponent) => run(rosterClient.updateClass(id, { hasGardenComponent }))}
+        onToggleClassActive={(id, active) => run(rosterClient.setActive('class_group', id, active))}
+      />
 
       <h2>Areas &amp; indicators</h2>
       {areas.map(area => (
