@@ -6,6 +6,7 @@ import { HomeScreen } from './screens/HomeScreen'
 import { ChildListScreen } from './screens/ChildListScreen'
 import { AssessChildRoute } from './screens/AssessChildRoute'
 import { ReportsScreen } from './screens/ReportsScreen'
+import { SettingsScreen } from './screens/SettingsScreen'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
       <Route path="/class/:classId" element={<RequireAuth><AppServicesProvider><ChildListScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/assess/:childId" element={<RequireAuth><AppServicesProvider><AssessChildRoute /></AppServicesProvider></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><AppServicesProvider><ReportsScreen /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings" element={<RequireAuth><AppServicesProvider><SettingsScreen /></AppServicesProvider></RequireAuth>} />
     </Routes>
   )
 }
