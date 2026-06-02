@@ -62,6 +62,7 @@ export function PaperReportScreen() {
       if (!child) return null
       const cls = ref.classes.find(c => c.id === child.classId)
       const programme = ref.programmes.find(p => p.id === cls?.programmeId)
+      // areaFilter is intentionally ignored here: the printable child report always shows all areas.
       const areas = ref.areas.filter(a => a.programmeId === programme?.id)
       const indicators = ref.indicators.filter(i => areas.some(a => a.id === i.areaId))
       return {
