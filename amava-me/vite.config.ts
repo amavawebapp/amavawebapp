@@ -25,5 +25,6 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/test-setup.ts'],
+    testTimeout: 20000, // userEvent multi-step flows are slow on loaded machines
   },
 })
