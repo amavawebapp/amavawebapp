@@ -29,10 +29,12 @@ begin
   if exists (select 1 from auth.users where email = v_email) then raise exception 'Username already taken'; end if;
 
   insert into auth.users (instance_id, id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data)
+    email_confirmed_at, created_at, updated_at, raw_app_meta_data, raw_user_meta_data,
+    confirmation_token, recovery_token, email_change, email_change_token_new)
   values ('00000000-0000-0000-0000-000000000000', v_id, 'authenticated', 'authenticated', v_email,
     extensions.crypt(p_password, extensions.gen_salt('bf')),
-    now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb);
+    now(), now(), now(), '{"provider":"email","providers":["email"]}'::jsonb, '{}'::jsonb,
+    '', '', '', '');
 
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   values (gen_random_uuid(), v_id, v_id::text,
