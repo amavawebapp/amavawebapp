@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context'
 import { loginIdentifierToEmail } from '../domain/username'
-import { Icon, Logo } from '../components/ui'
+import { Logo } from '../components/ui'
+import logoBadge from '../assets/logo-badge.png'
 
 export function LoginScreen() {
   const { signIn } = useAuth()
@@ -23,9 +24,8 @@ export function LoginScreen() {
       <div className="am-scroll am-pad" style={{ display: 'flex', flexDirection: 'column' }}>
         {/* warm hero band */}
         <div style={{ paddingTop: 78, paddingBottom: 26, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
-          <div style={{ width: 92, height: 92, borderRadius: 28, background: 'var(--brand)', display: 'grid', placeItems: 'center', boxShadow: 'var(--shadow-lg)', marginBottom: 20 }}>
-            <Icon name="leaf" size={48} color="#fff" stroke={1.8} />
-          </div>
+          <img src={logoBadge} alt="Amava Oluntu" width={104} height={104}
+            style={{ borderRadius: 26, boxShadow: 'var(--shadow-lg)', marginBottom: 20 }} />
           <Logo size={48} />
           <p className="am-muted" style={{ marginTop: 18, fontSize: '1.05rem', maxWidth: 280 }}>
             Welcome back. Sign in to record how your children are growing.
