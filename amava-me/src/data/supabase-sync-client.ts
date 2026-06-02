@@ -21,6 +21,7 @@ export class SupabaseSyncClient implements SyncClient {
       programmes: (programmes.data ?? []).map(p => ({
         id: p.id, name: p.name, scaleMax: p.scale_max,
         scaleDescriptors: p.scale_descriptors, active: p.active,
+        improvedThreshold: p.improved_threshold ?? 1,
       })),
       areas: (areas.data ?? []).map(a => ({
         id: a.id, programmeId: a.programme_id, name: a.name,
