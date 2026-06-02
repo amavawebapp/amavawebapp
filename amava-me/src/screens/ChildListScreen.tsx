@@ -1,11 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context'
 import { useConfigData } from '../hooks/use-config-data'
 import { ChildEditor } from '../components/ChildEditor'
 import { rosterClient } from '../data/roster-client'
 import type { Child } from '../domain/types'
-import { AppBar, Avatar, Icon, BottomNav } from '../components/ui'
+import { AppBar, Avatar, Icon, BottomNav, Toast } from '../components/ui'
 
 export function ChildListScreen() {
   const { classId } = useParams()
@@ -14,7 +14,14 @@ export function ChildListScreen() {
   const navigate = useNavigate()
   const [editing, setEditing] = useState<Child | 'new' | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const [q, setQ] = useState('')
+
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 2600)
+    return () => clearTimeout(t)
+  }, [toast])
 
   if (!ref) return <p className="container">Loading…</p>
   const cls = ref.classes.find(c => c.id === classId)
@@ -25,8 +32,8 @@ export function ChildListScreen() {
 
   const run = async (p: Promise<void>) => {
     setError(null)
-    try { await p; await refresh(); setEditing(null) }
-    catch (e) { setError(e instanceof Error ? e.message : 'Save failed. Please try again.') }
+    try { await p; await refresh(); setEditing(null); return true }
+    catch (e) { setError(e instanceof Error ? e.message : 'Save failed. Please try again.'); return false }
   }
 
   const activeChildren = children.filter(c => c.active)
@@ -99,12 +106,17 @@ export function ChildListScreen() {
             initial={editing === 'new'
               ? { classId }
               : { classId: editing.classId, firstName: editing.firstName, surname: editing.surname, dateStarted: editing.dateStarted, isSample: editing.isSample, fields: editing.fields }}
+            heading={editing === 'new' ? 'Add a child' : 'Edit child'}
             onCancel={() => setEditing(null)}
-            onSubmit={input => { if (editing === 'new') run(rosterClient.addChild(input)); else if (editing) run(rosterClient.updateChild(editing.id, input)) }}
+            onSubmit={input => {
+              if (editing === 'new') run(rosterClient.addChild(input)).then(ok => { if (ok) setToast(`Added ${input.firstName} — tap to start baseline`) })
+              else if (editing) run(rosterClient.updateChild(editing.id, input))
+            }}
           />
         )}
       </div>
 
+      <Toast show={!!toast}>{toast}</Toast>
       <BottomNav />
     </div>
   )
