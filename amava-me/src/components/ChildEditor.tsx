@@ -1,18 +1,22 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type { ClassGroup } from '../domain/types'
 import { CHILD_FIELDS, buildChildFields, type ChildInput } from '../domain/child-fields'
-import { Icon } from './ui'
+import { Avatar, Icon, StoredImage } from './ui'
+import { useOnlineStatus } from '../hooks/use-online-status'
+import { compressImage, isAcceptableUpload } from '../lib/image'
+import { randomPath, uploadFile } from '../lib/storage'
 
 interface Props {
   classes: ClassGroup[]
   allowClassChange: boolean
-  initial?: Partial<{ classId: string; firstName: string; surname: string; dateStarted: string; isSample: boolean; fields: Record<string, string> }>
+  initial?: Partial<{ classId: string; firstName: string; surname: string; dateStarted: string; isSample: boolean; fields: Record<string, string>; photoPath: string | null; indemnityPath: string | null }>
   onSubmit: (input: ChildInput) => void
   onCancel: () => void
   heading?: string
 }
 
 export function ChildEditor({ classes, allowClassChange, initial, onSubmit, onCancel, heading = 'Add a child' }: Props) {
+  const online = useOnlineStatus()
   const [firstName, setFirstName] = useState(initial?.firstName ?? '')
   const [surname, setSurname] = useState(initial?.surname ?? '')
   const [classId, setClassId] = useState(initial?.classId ?? classes[0]?.id ?? '')
@@ -20,7 +24,90 @@ export function ChildEditor({ classes, allowClassChange, initial, onSubmit, onCa
   const [isSample, setIsSample] = useState(initial?.isSample ?? true)
   const [fieldVals, setFieldVals] = useState<Record<string, string>>(initial?.fields ?? {})
 
+  // undefined = leave stored path unchanged; null = clear; string = new path.
+  const [photoPath, setPhotoPath] = useState<string | null | undefined>(initial?.photoPath ?? undefined)
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null) // local object-URL for instant preview
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoErr, setPhotoErr] = useState<string | null>(null)
+  const photoInput = useRef<HTMLInputElement>(null)
+
+  const [indemnityPath, setIndemnityPath] = useState<string | null | undefined>(initial?.indemnityPath ?? undefined)
+  const [indemnityBusy, setIndemnityBusy] = useState(false)
+  const [indemnityErr, setIndemnityErr] = useState<string | null>(null)
+  const indemnityInput = useRef<HTMLInputElement>(null)
+
   const valid = firstName.trim() !== '' && surname.trim() !== '' && classId !== ''
+  // Whether a photo is currently shown (preview, new, or existing-and-not-cleared).
+  const hasPhoto = photoPreview !== null || (photoPath !== null && (photoPath !== undefined || (initial?.photoPath ?? null) !== null))
+  const hasIndemnity = indemnityPath !== null && (indemnityPath !== undefined || (initial?.indemnityPath ?? null) !== null)
+
+  async function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setPhotoErr(null)
+    const check = isAcceptableUpload(file)
+    if (!check.ok || !file.type.startsWith('image/')) {
+      setPhotoErr(check.error ?? 'Please choose an image.')
+      return
+    }
+    setPhotoBusy(true)
+    try {
+      const blob = await compressImage(file)
+      const path = randomPath('photo', file.name)
+      await uploadFile('child-photos', path, blob, 'image/jpeg')
+      if (photoPreview) URL.revokeObjectURL(photoPreview)
+      setPhotoPreview(URL.createObjectURL(blob))
+      setPhotoPath(path)
+    } catch (err) {
+      setPhotoErr(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+    } finally {
+      setPhotoBusy(false)
+    }
+  }
+
+  function removePhoto() {
+    if (photoPreview) URL.revokeObjectURL(photoPreview)
+    setPhotoPreview(null)
+    setPhotoPath(null)
+    setPhotoErr(null)
+  }
+
+  async function handleIndemnity(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    setIndemnityErr(null)
+    const check = isAcceptableUpload(file)
+    if (!check.ok) {
+      setIndemnityErr(check.error ?? 'Please choose an image or PDF.')
+      return
+    }
+    setIndemnityBusy(true)
+    try {
+      const isImage = file.type.startsWith('image/')
+      const blob = isImage ? await compressImage(file) : file
+      const contentType = isImage ? 'image/jpeg' : (file.type || 'application/pdf')
+      const path = randomPath('indemnity', file.name)
+      await uploadFile('child-docs', path, blob, contentType)
+      setIndemnityPath(path)
+    } catch (err) {
+      setIndemnityErr(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+    } finally {
+      setIndemnityBusy(false)
+    }
+  }
+
+  function submit() {
+    const payload: ChildInput = {
+      classId, firstName: firstName.trim(), surname: surname.trim(), dateStarted, isSample, fields: buildChildFields(fieldVals),
+    }
+    if (photoPath !== undefined) payload.photoPath = photoPath
+    if (indemnityPath !== undefined) payload.indemnityPath = indemnityPath
+    onSubmit(payload)
+  }
+
+  const fullName = `${firstName} ${surname}`.trim() || 'New child'
 
   return (
     <div className="am-scrim" onClick={onCancel}>
@@ -35,6 +122,27 @@ export function ChildEditor({ classes, allowClassChange, initial, onSubmit, onCa
         </div>
 
         <div className="am-stack" style={{ gap: 16 }}>
+          {/* photo picker */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            {photoPreview
+              ? <img src={photoPreview} alt="child photo" style={{ width: 64, height: 64, flex: '0 0 64px', borderRadius: 32, objectFit: 'cover', display: 'block' }} />
+              : (photoPath !== null && (photoPath ?? initial?.photoPath))
+                ? <StoredImage bucket="child-photos" path={photoPath ?? initial?.photoPath} alt="child photo" size={64} fallback={<Avatar name={fullName} size={64} />} />
+                : <Avatar name={fullName} size={64} />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <input ref={photoInput} type="file" accept="image/*" capture="environment" onChange={handlePhoto} style={{ display: 'none' }} aria-label="child photo file" />
+              <button type="button" className="am-btn am-btn--ghost" style={{ padding: '8px 14px' }}
+                disabled={!online || photoBusy} onClick={() => photoInput.current?.click()}>
+                <Icon name="plus" size={18} /> {photoBusy ? 'Uploading…' : hasPhoto ? 'Change photo' : 'Add photo'}
+              </button>
+              {hasPhoto && !photoBusy && (
+                <button type="button" className="am-btn am-btn--ghost" style={{ padding: '8px 14px', marginLeft: 8 }} onClick={removePhoto}>Remove photo</button>
+              )}
+              {!online && <div className="am-muted" style={{ fontSize: '.82rem', marginTop: 6 }}>Connect to the internet to add a photo.</div>}
+              {photoErr && <div style={{ color: 'var(--warn)', fontSize: '.82rem', marginTop: 6, fontWeight: 700 }}>{photoErr}</div>}
+            </div>
+          </div>
+
           <label className="am-field">
             <span className="am-field__lab">First name</span>
             <input className="am-input" aria-label="first name" placeholder="e.g. Aphiwe" value={firstName} onChange={e => setFirstName(e.target.value)} autoFocus />
@@ -85,9 +193,27 @@ export function ChildEditor({ classes, allowClassChange, initial, onSubmit, onCa
             <input className="am-input" aria-label="start date" type="date" value={dateStarted} onChange={e => setDateStarted(e.target.value)} />
           </label>
 
-          <button className="am-btn am-btn--primary am-btn--block am-btn--lg" disabled={!valid} onClick={() => onSubmit({
-            classId, firstName: firstName.trim(), surname: surname.trim(), dateStarted, isSample, fields: buildChildFields(fieldVals),
-          })}>
+          {/* indemnity form */}
+          <div className="am-field">
+            <span className="am-field__lab">Indemnity form</span>
+            <input ref={indemnityInput} type="file" accept="image/*,application/pdf" onChange={handleIndemnity} style={{ display: 'none' }} aria-label="indemnity form file" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+              {hasIndemnity && !indemnityBusy && (
+                <span className="am-chip" style={{ background: 'var(--good-soft)', color: 'var(--good)', borderColor: 'transparent' }}>Attached ✓</span>
+              )}
+              <button type="button" className="am-btn am-btn--ghost" style={{ padding: '8px 14px' }}
+                disabled={!online || indemnityBusy} onClick={() => indemnityInput.current?.click()}>
+                <Icon name="plus" size={18} /> {indemnityBusy ? 'Uploading…' : hasIndemnity ? 'Replace' : 'Upload'}
+              </button>
+              {hasIndemnity && !indemnityBusy && (
+                <button type="button" className="am-btn am-btn--ghost" style={{ padding: '8px 14px' }} onClick={() => { setIndemnityPath(null); setIndemnityErr(null) }}>Remove</button>
+              )}
+            </div>
+            {!online && <div className="am-muted" style={{ fontSize: '.82rem', marginTop: 6 }}>Connect to the internet to upload the form.</div>}
+            {indemnityErr && <div style={{ color: 'var(--warn)', fontSize: '.82rem', marginTop: 6, fontWeight: 700 }}>{indemnityErr}</div>}
+          </div>
+
+          <button className="am-btn am-btn--primary am-btn--block am-btn--lg" disabled={!valid} onClick={submit}>
             <Icon name="check" size={20} stroke={3} /> {heading === 'Add a child' ? 'Add child' : 'Save'}
           </button>
         </div>

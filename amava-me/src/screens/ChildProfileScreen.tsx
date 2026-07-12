@@ -4,7 +4,9 @@ import { useConfigData } from '../hooks/use-config-data'
 import { useReportAssessments } from '../hooks/use-report-data'
 import { CHILD_FIELDS, ageFromDob } from '../domain/child-fields'
 import { childStatus } from '../domain/view-model'
-import { AppBar, Avatar, Icon, BottomNav, StatusPill } from '../components/ui'
+import { AppBar, Avatar, Icon, BottomNav, StatusPill, StoredImage } from '../components/ui'
+import { signedUrl } from '../lib/storage'
+import { useOnlineStatus } from '../hooks/use-online-status'
 import type { Assessment } from '../domain/types'
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
@@ -21,6 +23,7 @@ export function ChildProfileScreen() {
   const { ref } = useConfigData()
   const assessments = useReportAssessments()
   const navigate = useNavigate()
+  const online = useOnlineStatus()
 
   if (!ref) return <p className="container">Loading…</p>
 
@@ -66,7 +69,7 @@ export function ChildProfileScreen() {
 
         {/* header */}
         <div className="am-card am-card--pad" style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <Avatar name={fullName} size={56} />
+          <StoredImage bucket="child-photos" path={child.photoPath} alt={fullName} size={56} fallback={<Avatar name={fullName} size={56} />} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="am-h2" style={{ margin: 0 }}>{fullName}</div>
             <div className="am-muted" style={{ fontSize: '.92rem', marginTop: 2 }}>{cls?.name ?? '—'}</div>
@@ -94,6 +97,27 @@ export function ChildProfileScreen() {
             <div className="am-muted" style={{ flex: '0 0 128px', fontSize: '.88rem' }}>Start date</div>
             <div style={{ flex: 1, minWidth: 0, fontWeight: 600 }}>{fmtDate(child.dateStarted)}</div>
           </div>
+          <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+            <div className="am-muted" style={{ flex: '0 0 128px', fontSize: '.88rem' }}>Indemnity form</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {child.indemnityPath ? (
+                <>
+                  <button className="am-btn am-btn--ghost" style={{ padding: '6px 14px' }} disabled={!online}
+                    onClick={async () => {
+                      try {
+                        const url = await signedUrl('child-docs', child.indemnityPath!)
+                        window.open(url, '_blank', 'noopener')
+                      } catch { /* offline/error: link unavailable */ }
+                    }}>
+                    <Icon name="download" size={16} /> View indemnity form
+                  </button>
+                  {!online && <div className="am-muted" style={{ fontSize: '.8rem', marginTop: 4 }}>Connect to the internet to view.</div>}
+                </>
+              ) : (
+                <span className="am-muted">Not uploaded</span>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* assessment history */}
@@ -107,8 +131,11 @@ export function ChildProfileScreen() {
               return (
               <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700 }}>
-                    {a.type === 'baseline' ? 'Baseline' : 'Quarterly'} · avg {avg != null ? avg.toFixed(1) : '—'}
+                  <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span>{a.type === 'baseline' ? 'Baseline' : 'Quarterly'} · avg {avg != null ? avg.toFixed(1) : '—'}</span>
+                    {a.attachments.length > 0 && (
+                      <span className="am-chip" style={{ padding: '3px 9px', fontSize: '.75rem' }}>📎 {a.attachments.length}</span>
+                    )}
                   </div>
                   <div className="am-muted" style={{ fontSize: '.86rem' }}>{fmtDate(a.date)}</div>
                 </div>

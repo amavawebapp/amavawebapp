@@ -5,7 +5,7 @@ import { useConfigData } from '../hooks/use-config-data'
 import { ChildEditor } from '../components/ChildEditor'
 import { rosterClient } from '../data/roster-client'
 import type { Child } from '../domain/types'
-import { AppBar, Avatar, Icon, BottomNav, Toast } from '../components/ui'
+import { AppBar, Avatar, Icon, BottomNav, Toast, StoredImage } from '../components/ui'
 
 export function ChildListScreen() {
   const { classId } = useParams()
@@ -66,7 +66,8 @@ export function ChildListScreen() {
         {filtered.map(ch => (
           <div key={ch.id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             <button className="am-row" onClick={() => navigate(`/assess/${ch.id}`)}>
-              <Avatar name={`${ch.firstName} ${ch.surname}`} />
+              <StoredImage bucket="child-photos" path={ch.photoPath} alt={`${ch.firstName} ${ch.surname}`} size={46}
+                fallback={<Avatar name={`${ch.firstName} ${ch.surname}`} size={46} />} />
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="am-row__title">{ch.firstName} {ch.surname}</div>
                 <div className="am-row__sub">
@@ -109,7 +110,7 @@ export function ChildListScreen() {
             allowClassChange={isCoordinator}
             initial={editing === 'new'
               ? { classId }
-              : { classId: editing.classId, firstName: editing.firstName, surname: editing.surname, dateStarted: editing.dateStarted, isSample: editing.isSample, fields: editing.fields }}
+              : { classId: editing.classId, firstName: editing.firstName, surname: editing.surname, dateStarted: editing.dateStarted, isSample: editing.isSample, fields: editing.fields, photoPath: editing.photoPath, indemnityPath: editing.indemnityPath }}
             heading={editing === 'new' ? 'Add a child' : 'Edit child'}
             onCancel={() => setEditing(null)}
             onSubmit={input => {
