@@ -84,6 +84,16 @@
 
 > All uploads are **online-only**. Show a clear "needs internet to upload" message when offline. Files are private; display via signed URLs (short TTL), cached in-memory for the session.
 
+## Phase 2 cross-cutting requirements (user-added)
+
+- **Upload size control:** cap every upload AND shrink images client-side before upload.
+  - Images (photos, indemnity photos, attachment photos): downscale client-side to a max long-edge (e.g. **1600px**) and re-encode JPEG (~0.8 quality) via a `<canvas>` before upload — a `src/lib/image.ts` `compressImage(file, maxEdge, quality) → Blob`. This is the "crop/compress after selection" step.
+  - PDFs: hard **reject over a limit** (e.g. **5 MB**) with a friendly message (no client-side PDF shrink).
+  - Also set each **bucket's `file_size_limit`** at the Supabase side as a backstop (e.g. 5 MB) and restrict `allowed_mime_types` (image/*, application/pdf).
+- **Storage monitor in Settings:** coordinators need to see how full storage is vs the free-tier limit (**1 GB** on Supabase free tier).
+  - Add a `SECURITY DEFINER` RPC `admin_storage_usage()` returning per-bucket + total bytes summed from `storage.objects` (`sum((metadata->>'size')::bigint)`), callable by coordinators only (guard on facilitator role).
+  - New Settings sub-screen **`/settings/storage`** ("Storage") — a hub row under "This phone" or a new "Storage" group: show total used (MB) vs 1024 MB as an `.am-bars`/progress bar + per-bucket breakdown + a `--warn` banner when usage ≥ ~80%. Read via the RPC.
+
 ## TASK 6 — Storage buckets + schema (migration, live DB)
 
 - [ ] **Step 1:** Create a migration `0005_storage.sql` (and apply live). Create private buckets `child-photos`, `child-docs`, `assessment-files` (via storage API/SQL `insert into storage.buckets`). Storage RLS: authenticated users may read/write objects (mirror the app's staff-only model; tighten to coordinator/own-class if feasible). Add columns: `alter table child add column photo_path text, add column indemnity_path text;` and `alter table assessment add column attachments jsonb not null default '[]';` (each attachment `{path, name, type}`).
