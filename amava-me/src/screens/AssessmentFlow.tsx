@@ -1,11 +1,14 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type {
-  Assessment, AssessmentType, Child, ClassGroup, DevelopmentArea, Indicator, Programme,
+  Assessment, AssessmentType, Attachment, Child, ClassGroup, DevelopmentArea, Indicator, Programme,
 } from '../domain/types'
 import { visibleAreas } from '../domain/assessment-logic'
 import { AreaStep } from '../components/AreaStep'
 import { AppBar, Avatar, Icon } from '../components/ui'
 import { areaIcon, shortLabel } from '../domain/view-model'
+import { useOnlineStatus } from '../hooks/use-online-status'
+import { compressImage, isAcceptableUpload } from '../lib/image'
+import { uploadFile, randomPath } from '../lib/storage'
 
 interface Props {
   programme: Programme
@@ -27,7 +30,35 @@ export function AssessmentFlow(props: Props) {
   const [scores, setScores] = useState<Record<string, number>>({})
   const [notes, setNotes] = useState<Record<string, string>>({})
   const [coAssessors, setCoAssessors] = useState('')
+  const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [attachError, setAttachError] = useState('')
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const online = useOnlineStatus()
   const [error, setError] = useState('')
+
+  async function handleFilePick(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    e.target.value = '' // allow re-selecting the same file
+    if (!file) return
+    setAttachError('')
+    const check = isAcceptableUpload(file)
+    if (!check.ok) {
+      setAttachError(check.error ?? 'That file can’t be uploaded.')
+      return
+    }
+    setUploading(true)
+    try {
+      const blob = await compressImage(file)
+      const path = randomPath('assess', file.name)
+      await uploadFile('assessment-files', path, blob, file.type)
+      setAttachments(list => [...list, { path, name: file.name, type: file.type }])
+    } catch (err) {
+      setAttachError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   if (steps.length === 0) {
     return <p className="container">No assessment areas available for this class.</p>
@@ -84,7 +115,7 @@ export function AssessmentFlow(props: Props) {
       observations: Object.entries(notes)
         .filter(([, note]) => note.trim() !== '')
         .map(([areaId, note]) => ({ areaId, note })),
-      attachments: [],
+      attachments,
       syncState: 'pending',
     }
     props.onSubmit(assessment)
@@ -172,6 +203,61 @@ export function AssessmentFlow(props: Props) {
                 onChange={e => setCoAssessors(e.target.value)}
               />
             </label>
+
+            <div className="am-card am-card--pad am-stack" style={{ gap: 12 }}>
+              <div>
+                <div className="am-ctrl__lab" style={{ fontWeight: 800 }}>Attachments</div>
+                <p className="am-muted" style={{ margin: '4px 0 0', fontSize: '.9rem' }}>
+                  Attach an attendance register, incident report, or photo (optional).
+                </p>
+              </div>
+
+              {attachments.length > 0 && (
+                <div className="am-stack" style={{ gap: 8 }}>
+                  {attachments.map(att => (
+                    <div key={att.path} className="am-row" style={{ padding: '8px 12px', cursor: 'default' }}>
+                      <Icon name="report" size={20} color="var(--brand)" style={{ flex: '0 0 20px' }} />
+                      <div style={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 600 }}>
+                        {att.name}
+                      </div>
+                      <button
+                        type="button"
+                        aria-label={`Remove ${att.name}`}
+                        onClick={() => setAttachments(list => list.filter(a => a.path !== att.path))}
+                        style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--warn)', fontWeight: 900, fontSize: '1.1rem', lineHeight: 1, padding: 4 }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {attachError && (
+                <p style={{ color: 'var(--warn)', fontWeight: 700, fontSize: '.86rem', margin: 0 }}>{attachError}</p>
+              )}
+
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,application/pdf"
+                style={{ display: 'none' }}
+                onChange={handleFilePick}
+              />
+              <button
+                type="button"
+                className="am-btn am-btn--ghost"
+                disabled={!online || uploading}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <Icon name="plus" size={18} stroke={2.6} /> {uploading ? 'Uploading…' : 'Add file'}
+              </button>
+              {!online && (
+                <p className="am-muted" style={{ margin: 0, fontSize: '.84rem' }}>
+                  Connect to the internet to attach files — your scores still save offline.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>

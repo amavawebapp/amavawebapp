@@ -15,6 +15,7 @@ import { SettingsAreas } from './screens/settings/SettingsAreas'
 import { SettingsScale } from './screens/settings/SettingsScale'
 import { SettingsFacilitators } from './screens/settings/SettingsFacilitators'
 import { SettingsOffline } from './screens/settings/SettingsOffline'
+import { SettingsStorage } from './screens/settings/SettingsStorage'
 
 export default function App() {
   return (
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/settings/scale" element={<RequireAuth><AppServicesProvider><SettingsScale /></AppServicesProvider></RequireAuth>} />
       <Route path="/settings/facilitators" element={<RequireAuth><AppServicesProvider><SettingsFacilitators /></AppServicesProvider></RequireAuth>} />
       <Route path="/settings/offline" element={<RequireAuth><AppServicesProvider><SettingsOffline /></AppServicesProvider></RequireAuth>} />
+      <Route path="/settings/storage" element={<RequireAuth><AppServicesProvider><SettingsStorage /></AppServicesProvider></RequireAuth>} />
     </Routes>
   )
 }

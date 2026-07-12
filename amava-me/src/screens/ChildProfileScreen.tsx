@@ -138,6 +138,33 @@ export function ChildProfileScreen() {
                     )}
                   </div>
                   <div className="am-muted" style={{ fontSize: '.86rem' }}>{fmtDate(a.date)}</div>
+                  {a.attachments.length > 0 && (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
+                      {a.attachments.map(att => (
+                        <button
+                          key={att.path}
+                          type="button"
+                          className="am-chip"
+                          disabled={!online}
+                          title={online ? att.name : 'Connect to the internet to open'}
+                          style={{ padding: '4px 10px', fontSize: '.78rem', cursor: online ? 'pointer' : 'default', border: '1px solid var(--line)', maxWidth: '100%' }}
+                          onClick={async () => {
+                            try {
+                              const url = await signedUrl('assessment-files', att.path)
+                              window.open(url, '_blank', 'noopener')
+                            } catch { /* offline/error: link unavailable */ }
+                          }}
+                        >
+                          <span style={{ display: 'inline-block', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' }}>
+                            📎 {att.name}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                  {a.attachments.length > 0 && !online && (
+                    <div className="am-muted" style={{ fontSize: '.78rem', marginTop: 3 }}>Connect to the internet to open attachments.</div>
+                  )}
                 </div>
               </div>
               )
