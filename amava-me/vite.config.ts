@@ -8,8 +8,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       manifest: {
-        name: 'Amava M&E',
-        short_name: 'Amava M&E',
+        name: 'Amava Oluntu M&E',
+        short_name: 'Amava Oluntu',
         theme_color: '#687F8B',
         background_color: '#ffffff',
         display: 'standalone',
