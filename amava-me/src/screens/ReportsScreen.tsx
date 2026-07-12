@@ -134,7 +134,7 @@ export function ReportsScreen() {
     const scaleMax = report.kind === 'org' ? 4 : report.scaleMax
     const doc = buildReportDoc({
       kind: report.kind,
-      title: `Amava M&E — ${title}`,
+      title: `Amava Oluntu — ${title}`,
       period,
       regLine: REG_LINE,
       scaleMax,

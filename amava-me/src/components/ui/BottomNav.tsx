@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { Icon, type IconName } from './Icon'
 
 const ITEMS: { key: string; label: string; icon: IconName; path: string; match: (p: string) => boolean }[] = [
-  { key: 'home', label: 'Classes', icon: 'home', path: '/', match: p => p === '/' || p.startsWith('/class') || p.startsWith('/assess') },
+  { key: 'home', label: 'Classes', icon: 'home', path: '/', match: p => p === '/' || p.startsWith('/class') || p.startsWith('/assess') || p.startsWith('/child') },
   { key: 'reports', label: 'Reports', icon: 'chart', path: '/reports', match: p => p.startsWith('/report') },
   { key: 'settings', label: 'Settings', icon: 'gear', path: '/settings', match: p => p.startsWith('/settings') },
 ]
