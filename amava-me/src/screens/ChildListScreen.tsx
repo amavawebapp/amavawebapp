@@ -74,6 +74,7 @@ export function ChildListScreen() {
             </button>
             {canManage && (
               <div style={{ display: 'flex', gap: 8, paddingLeft: 8 }}>
+                <button className="am-btn am-btn--ghost" style={{ padding: '6px 14px' }} onClick={() => navigate(`/child/${ch.id}`)}>View</button>
                 <button className="am-btn am-btn--ghost" style={{ padding: '6px 14px' }} onClick={() => setEditing(ch)}>Edit</button>
                 <button className="am-btn am-btn--ghost" style={{ padding: '6px 14px' }} onClick={() => run(rosterClient.setActive('child', ch.id, false))}>Retire</button>
               </div>
