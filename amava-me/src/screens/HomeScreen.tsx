@@ -22,8 +22,11 @@ export function HomeScreen() {
     .filter(p => p.active && myClasses.some(c => c.programmeId === p.id))
     .sort((a, b) => a.name.localeCompare(b.name))
 
+  // Only classes whose programme is actually rendered (active programme).
+  const shownClasses = myClasses.filter(c => myProgrammes.some(p => p.id === c.programmeId))
+
   const total = ref.children.filter(
-    ch => myClasses.some(c => c.id === ch.classId) && ch.active,
+    ch => shownClasses.some(c => c.id === ch.classId) && ch.active,
   ).length
 
   return (
@@ -54,7 +57,7 @@ export function HomeScreen() {
               <div style={{ flex: 1 }}>
                 <div className="am-h2">Your classes</div>
                 <p className="am-muted" style={{ margin: '6px 0 0', fontSize: '.92rem' }}>
-                  You have {total} children across {myClasses.length} classes.
+                  You have {total} children across {shownClasses.length} classes.
                 </p>
               </div>
             </div>
@@ -62,7 +65,7 @@ export function HomeScreen() {
             <div className="am-h2" style={{ marginTop: 4 }}>Our Projects</div>
 
             {myProgrammes.map(p => {
-              const progClasses = myClasses.filter(c => c.programmeId === p.id)
+              const progClasses = shownClasses.filter(c => c.programmeId === p.id)
               return (
                 <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div className="am-sectionlab"><span className="am-eyebrow">{p.name}</span></div>

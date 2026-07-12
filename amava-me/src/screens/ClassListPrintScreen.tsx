@@ -1,4 +1,5 @@
 import { useParams, useNavigate, Navigate } from 'react-router-dom'
+import { useAuth } from '../auth/auth-context'
 import { useConfigData } from '../hooks/use-config-data'
 import { Icon } from '../components/ui'
 
@@ -8,6 +9,7 @@ const fmtDate = (iso: string) =>
 
 export function ClassListPrintScreen() {
   const { classId } = useParams()
+  const { session } = useAuth()
   const { ref } = useConfigData()
   const navigate = useNavigate()
 
@@ -15,6 +17,11 @@ export function ClassListPrintScreen() {
 
   const cls = ref.classes.find(c => c.id === classId)
   if (!cls) return <Navigate to="/" replace />
+
+  const me = ref.facilitators.find(f => f.id === session?.user.id)
+  const isCoordinator = me?.role === 'coordinator'
+  const canView = isCoordinator || (me?.classIds.includes(cls.id) ?? false)
+  if (!canView) return <Navigate to="/" replace />
   const programme = ref.programmes.find(p => p.id === cls.programmeId)
   const children = ref.children
     .filter(c => c.classId === cls.id && c.active)

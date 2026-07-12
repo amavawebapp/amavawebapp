@@ -3,11 +3,17 @@ import { useAuth } from '../auth/auth-context'
 import { useConfigData } from '../hooks/use-config-data'
 import { useReportAssessments } from '../hooks/use-report-data'
 import { CHILD_FIELDS, ageFromDob } from '../domain/child-fields'
-import { AppBar, Avatar, Icon, BottomNav } from '../components/ui'
+import { childStatus } from '../domain/view-model'
+import { AppBar, Avatar, Icon, BottomNav, StatusPill } from '../components/ui'
+import type { Assessment } from '../domain/types'
 
 const todayISO = () => new Date().toISOString().slice(0, 10)
 const fmtDate = (iso: string) =>
   iso ? new Date(iso).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'
+
+/** Mean of an assessment's indicator scores, or null when there are none. */
+const avgScore = (a: Assessment): number | null =>
+  a.scores.length ? a.scores.reduce((s, x) => s + x.score, 0) / a.scores.length : null
 
 export function ChildProfileScreen() {
   const { childId } = useParams()
@@ -33,6 +39,15 @@ export function ChildProfileScreen() {
     .filter(a => a.childId === child.id)
     .sort((a, b) => b.date.localeCompare(a.date))
 
+  // Status pill: netChange = latest avg − earliest avg (null when <2 assessments).
+  const assessmentCount = history.length
+  const hasFollowUp = history.some(a => a.type !== 'baseline')
+  const latestAvg = assessmentCount ? avgScore(history[0]) : null
+  const earliestAvg = assessmentCount ? avgScore(history[history.length - 1]) : null
+  const netChange =
+    assessmentCount >= 2 && latestAvg != null && earliestAvg != null ? latestAvg - earliestAvg : null
+  const status = childStatus(assessmentCount, hasFollowUp, netChange)
+
   const fieldRows = CHILD_FIELDS
     .filter(f => (child.fields[f.key] ?? '').trim() !== '')
     .map(f => {
@@ -55,11 +70,14 @@ export function ChildProfileScreen() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="am-h2" style={{ margin: 0 }}>{fullName}</div>
             <div className="am-muted" style={{ fontSize: '.92rem', marginTop: 2 }}>{cls?.name ?? '—'}</div>
-            <span className="am-chip" style={{ marginTop: 8, ...(child.isSample
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
+            <StatusPill status={status} />
+            <span className="am-chip" style={{ ...(child.isSample
               ? { background: 'var(--good-soft)', color: 'var(--good)', borderColor: 'transparent' }
               : {}) }}>
               {child.isSample ? 'Sample' : 'Not in sample'}
             </span>
+            </div>
           </div>
         </div>
 
@@ -84,15 +102,19 @@ export function ChildProfileScreen() {
           {history.length === 0 ? (
             <p className="am-muted" style={{ margin: 0 }}>No assessments recorded yet.</p>
           ) : (
-            history.map(a => (
+            history.map(a => {
+              const avg = avgScore(a)
+              return (
               <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontWeight: 700 }}>{a.type === 'baseline' ? 'Baseline' : 'Quarterly'}</div>
+                  <div style={{ fontWeight: 700 }}>
+                    {a.type === 'baseline' ? 'Baseline' : 'Quarterly'} · avg {avg != null ? avg.toFixed(1) : '—'}
+                  </div>
                   <div className="am-muted" style={{ fontSize: '.86rem' }}>{fmtDate(a.date)}</div>
                 </div>
-                <span className="am-chip">{a.scores.length} score{a.scores.length === 1 ? '' : 's'}</span>
               </div>
-            ))
+              )
+            })
           )}
         </div>
 
