@@ -38,7 +38,7 @@ export function HomeScreen() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div className="am-eyebrow">Hello, {me?.name?.split(' ')[0] ?? ''}</div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Logo size={30} sub={false} />
+              <Logo size={30} />
               <img src={logoBadge} alt="" width={34} height={34} style={{ borderRadius: 9, flex: '0 0 auto' }} />
             </div>
           </div>
