@@ -52,6 +52,9 @@ export function ChildListScreen() {
             {activeChildren.length} children
           </span>
           {cls?.hasGardenComponent && <span className="am-chip"><Icon name="leaf" size={14} /> Garden class</span>}
+          <button className="am-btn am-btn--ghost" style={{ padding: '6px 14px', marginLeft: 'auto' }} onClick={() => navigate(`/class/${classId}/print`)}>
+            <Icon name="print" size={16} /> Print class list
+          </button>
         </div>
 
         {/* search */}

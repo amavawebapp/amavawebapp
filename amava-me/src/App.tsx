@@ -5,6 +5,7 @@ import { LoginScreen } from './screens/LoginScreen'
 import { HomeScreen } from './screens/HomeScreen'
 import { ChildListScreen } from './screens/ChildListScreen'
 import { ChildProfileScreen } from './screens/ChildProfileScreen'
+import { ClassListPrintScreen } from './screens/ClassListPrintScreen'
 import { AssessChildRoute } from './screens/AssessChildRoute'
 import { ReportsScreen } from './screens/ReportsScreen'
 import { PaperReportScreen } from './screens/PaperReportScreen'
@@ -22,6 +23,7 @@ export default function App() {
       <Route path="/" element={<RequireAuth><AppServicesProvider><HomeScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/class/:classId" element={<RequireAuth><AppServicesProvider><ChildListScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/child/:childId" element={<RequireAuth><AppServicesProvider><ChildProfileScreen /></AppServicesProvider></RequireAuth>} />
+      <Route path="/class/:classId/print" element={<RequireAuth><AppServicesProvider><ClassListPrintScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/assess/:childId" element={<RequireAuth><AppServicesProvider><AssessChildRoute /></AppServicesProvider></RequireAuth>} />
       <Route path="/reports" element={<RequireAuth><AppServicesProvider><ReportsScreen /></AppServicesProvider></RequireAuth>} />
       <Route path="/report/print" element={<RequireAuth><AppServicesProvider><PaperReportScreen /></AppServicesProvider></RequireAuth>} />
