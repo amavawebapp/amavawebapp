@@ -4,6 +4,7 @@ import { useAppServices } from '../app-context'
 import { useReferenceData } from '../hooks/use-reference-data'
 import { useSyncStatus } from '../hooks/use-sync-status'
 import { Logo, Avatar, AVA_COLORS, SyncBanner, Donut, Icon, BottomNav } from '../components/ui'
+import logoBadge from '../assets/logo-badge.png'
 
 export function HomeScreen() {
   const { session } = useAuth()
@@ -34,9 +35,12 @@ export function HomeScreen() {
       {/* custom warm header */}
       <div className="am-appbar" style={{ background: 'var(--surface)' }}>
         <div className="am-appbar__row" style={{ paddingBottom: 16 }}>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="am-eyebrow">Hello, {me?.name?.split(' ')[0] ?? ''}</div>
-            <Logo size={30} sub={false} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Logo size={30} sub={false} />
+              <img src={logoBadge} alt="" width={34} height={34} style={{ borderRadius: 9, flex: '0 0 auto' }} />
+            </div>
           </div>
           <Avatar name={me?.name ?? '?'} color="var(--brand)" size={46} />
         </div>
