@@ -128,19 +128,20 @@ export function ChildProfileScreen() {
           ) : (
             history.map(a => {
               const avg = avgScore(a)
+              const atts = a.attachments ?? []
               return (
               <div key={a.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span>{a.type === 'baseline' ? 'Baseline' : 'Quarterly'} · avg {avg != null ? avg.toFixed(1) : '—'}</span>
-                    {a.attachments.length > 0 && (
-                      <span className="am-chip" style={{ padding: '3px 9px', fontSize: '.75rem' }}>📎 {a.attachments.length}</span>
+                    {atts.length > 0 && (
+                      <span className="am-chip" style={{ padding: '3px 9px', fontSize: '.75rem' }}>📎 {atts.length}</span>
                     )}
                   </div>
                   <div className="am-muted" style={{ fontSize: '.86rem' }}>{fmtDate(a.date)}</div>
-                  {a.attachments.length > 0 && (
+                  {atts.length > 0 && (
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
-                      {a.attachments.map(att => (
+                      {atts.map(att => (
                         <button
                           key={att.path}
                           type="button"
@@ -162,7 +163,7 @@ export function ChildProfileScreen() {
                       ))}
                     </div>
                   )}
-                  {a.attachments.length > 0 && !online && (
+                  {atts.length > 0 && !online && (
                     <div className="am-muted" style={{ fontSize: '.78rem', marginTop: 3 }}>Connect to the internet to open attachments.</div>
                   )}
                 </div>
