@@ -38,6 +38,12 @@ export function SettingsScreen() {
         { title: 'Facilitator accounts', sub: 'Who can record assessments', icon: 'people', to: '/settings/facilitators' },
       ],
     })
+    groups.push({
+      heading: 'Account',
+      rows: [
+        { title: 'Storage', sub: 'How much cloud storage is used', icon: 'chart', to: '/settings/storage' },
+      ],
+    })
   }
   groups.push({
     heading: 'This phone',

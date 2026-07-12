@@ -10,7 +10,7 @@ const ref: ReferenceData = {
 }
 const mkAssessment = (id: string): Assessment => ({
   id, childId: 'c1', type: 'baseline', date: '2026-01-01', assessedBy: 'f',
-  coAssessors: '', scaleMax: 4, scores: [], observations: [], syncState: 'pending',
+  coAssessors: '', scaleMax: 4, scores: [], observations: [], attachments: [], syncState: 'pending',
 })
 
 describe('SyncEngine', () => {

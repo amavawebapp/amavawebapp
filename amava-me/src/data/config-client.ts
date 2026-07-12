@@ -13,6 +13,13 @@ export interface ConfigClient {
   reorderRows(table: ConfigTable, updates: { id: string; sortOrder: number }[]): Promise<void>
   updateScale(programmeId: string, scaleMax: number, descriptors: ScalePoint[]): Promise<void>
   setThreshold(programmeId: string, n: number): Promise<void>
+  /** Per-bucket + total storage bytes used (coordinator-only RPC). Online-only. */
+  storageUsage(): Promise<StorageUsage>
+}
+
+export interface StorageUsage {
+  total: number
+  buckets: Record<string, number>
 }
 
 export class SupabaseConfigClient implements ConfigClient {
@@ -58,6 +65,34 @@ export class SupabaseConfigClient implements ConfigClient {
   }
   async setThreshold(programmeId: string, n: number) {
     await this.run(this.sb.from('programme').update({ improved_threshold: n }).eq('id', programmeId))
+  }
+  async storageUsage(): Promise<StorageUsage> {
+    const { data, error } = await this.sb.rpc('admin_storage_usage')
+    if (error) throw new Error(`Could not read storage usage (needs internet): ${error.message}`)
+    // Tolerate either a single JSON `{ total, buckets }` object or one row per bucket
+    // (`{ bucket_id/bucket/name, bytes/size/total_bytes }`).
+    if (data && !Array.isArray(data) && typeof data === 'object') {
+      const obj = data as { total?: unknown; buckets?: Record<string, unknown> }
+      if (obj.buckets && typeof obj.buckets === 'object') {
+        const buckets: Record<string, number> = {}
+        let total = 0
+        for (const [name, v] of Object.entries(obj.buckets)) {
+          const bytes = Number(v) || 0
+          buckets[name] = bytes
+          total += bytes
+        }
+        return { total: Number(obj.total ?? total) || total, buckets }
+      }
+    }
+    const buckets: Record<string, number> = {}
+    let total = 0
+    for (const row of (data ?? []) as Record<string, unknown>[]) {
+      const name = String(row.bucket_id ?? row.bucket ?? row.name ?? '')
+      const bytes = Number(row.bytes ?? row.size ?? row.total_bytes ?? row.total ?? 0) || 0
+      if (name) buckets[name] = bytes
+      total += bytes
+    }
+    return { total, buckets }
   }
 }
 
