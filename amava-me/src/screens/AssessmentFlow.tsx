@@ -84,6 +84,7 @@ export function AssessmentFlow(props: Props) {
       observations: Object.entries(notes)
         .filter(([, note]) => note.trim() !== '')
         .map(([areaId, note]) => ({ areaId, note })),
+      attachments: [],
       syncState: 'pending',
     }
     props.onSubmit(assessment)

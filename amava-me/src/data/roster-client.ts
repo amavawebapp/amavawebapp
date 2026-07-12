@@ -49,16 +49,22 @@ export class SupabaseRosterClient implements RosterClient {
     await this.run(this.sb.from('class_group').update(patch).eq('id', id))
   }
   async addChild(input: ChildInput) {
-    await this.run(this.sb.from('child').insert({
+    const row: Record<string, unknown> = {
       class_id: input.classId, first_name: input.firstName, surname: input.surname,
       fields: input.fields, date_started: input.dateStarted, is_sample: input.isSample, active: true,
-    }))
+    }
+    if (input.photoPath !== undefined) row.photo_path = input.photoPath
+    if (input.indemnityPath !== undefined) row.indemnity_path = input.indemnityPath
+    await this.run(this.sb.from('child').insert(row))
   }
   async updateChild(id: string, input: ChildInput) {
-    await this.run(this.sb.from('child').update({
+    const patch: Record<string, unknown> = {
       class_id: input.classId, first_name: input.firstName, surname: input.surname,
       fields: input.fields, date_started: input.dateStarted, is_sample: input.isSample,
-    }).eq('id', id))
+    }
+    if (input.photoPath !== undefined) patch.photo_path = input.photoPath
+    if (input.indemnityPath !== undefined) patch.indemnity_path = input.indemnityPath
+    await this.run(this.sb.from('child').update(patch).eq('id', id))
   }
   async setActive(table: RosterTable, id: string, active: boolean) {
     await this.run(this.sb.from(table).update({ active }).eq('id', id))

@@ -10,7 +10,7 @@ import type { Assessment, DevelopmentArea, ClassGroup } from './types'
 const mkAssessment = (over: Partial<Assessment>): Assessment => ({
   id: 'a', childId: 'c', type: 'baseline', date: '2026-01-01',
   assessedBy: 'f', coAssessors: '', scaleMax: 4, scores: [], observations: [],
-  syncState: 'synced', ...over,
+  attachments: [], syncState: 'synced', ...over,
 })
 
 describe('nextAssessmentType', () => {

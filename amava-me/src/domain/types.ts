@@ -49,6 +49,17 @@ export interface Child {
   dateStarted: string // ISO date
   isSample: boolean
   active: boolean
+  /** Object key in the private `child-photos` bucket (null = no photo). */
+  photoPath?: string | null
+  /** Object key in the private `child-docs` bucket (null = no form). */
+  indemnityPath?: string | null
+}
+
+/** A file stored in a private storage bucket, referenced by object key. */
+export interface Attachment {
+  path: string
+  name: string
+  type: string
 }
 
 export interface Facilitator {
@@ -83,6 +94,8 @@ export interface Assessment {
   scaleMax: number
   scores: ScoreEntry[]
   observations: ObservationEntry[]
+  /** Files (photos/PDFs) uploaded for this assessment; empty when none. */
+  attachments: Attachment[]
   syncState: SyncState
 }
 

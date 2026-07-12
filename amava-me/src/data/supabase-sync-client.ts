@@ -38,6 +38,7 @@ export class SupabaseSyncClient implements SyncClient {
       children: (children.data ?? []).map(c => ({
         id: c.id, classId: c.class_id, firstName: c.first_name, surname: c.surname,
         fields: c.fields, dateStarted: c.date_started, isSample: c.is_sample, active: c.active,
+        photoPath: c.photo_path ?? null, indemnityPath: c.indemnity_path ?? null,
       })),
       facilitators: (facilitators.data ?? []).map((f): Facilitator => ({
         id: f.id, name: f.name, role: f.role, classIds: f.class_ids,
@@ -54,7 +55,8 @@ export class SupabaseSyncClient implements SyncClient {
     return (data ?? []).map(a => ({
       id: a.id, childId: a.child_id, type: a.type, date: a.date,
       assessedBy: a.assessed_by, coAssessors: a.co_assessors, scaleMax: a.scale_max,
-      scores: a.scores, observations: a.observations, syncState: 'synced',
+      scores: a.scores, observations: a.observations, attachments: a.attachments ?? [],
+      syncState: 'synced',
     }))
   }
 
@@ -62,7 +64,7 @@ export class SupabaseSyncClient implements SyncClient {
     const { error } = await this.sb.from('assessment').upsert({
       id: a.id, child_id: a.childId, type: a.type, date: a.date,
       assessed_by: a.assessedBy, co_assessors: a.coAssessors, scale_max: a.scaleMax,
-      scores: a.scores, observations: a.observations,
+      scores: a.scores, observations: a.observations, attachments: a.attachments ?? [],
     })
     if (error) throw error
   }

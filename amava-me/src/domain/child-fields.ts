@@ -18,6 +18,10 @@ export interface ChildInput {
   dateStarted: string
   isSample: boolean
   fields: Record<string, string>
+  /** Object key in `child-photos`. Omit to leave the stored path unchanged. */
+  photoPath?: string | null
+  /** Object key in `child-docs`. Omit to leave the stored path unchanged. */
+  indemnityPath?: string | null
 }
 
 /** Keep only known field keys with non-blank, trimmed values. */

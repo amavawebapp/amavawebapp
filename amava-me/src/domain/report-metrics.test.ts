@@ -13,7 +13,7 @@ const child = (id: string): Child => ({
 const ax = (id: string, childId: string, type: 'baseline' | 'quarterly', date: string, s: Record<string, number>): Assessment => ({
   id, childId, type, date, assessedBy: 'f', coAssessors: '', scaleMax: 4,
   scores: Object.entries(s).map(([indicatorId, score]) => ({ indicatorId, indicatorText: '', score })),
-  observations: [], syncState: 'synced',
+  observations: [], attachments: [], syncState: 'synced',
 })
 
 describe('buildReport', () => {
