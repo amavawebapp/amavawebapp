@@ -14,9 +14,13 @@ export function HomeScreen() {
 
   if (!ref) return <p className="container">Loading…</p>
   const me = ref.facilitators.find(f => f.id === session?.user.id)
+  const isCoordinator = me?.role === 'coordinator'
   const myClasses = ref.classes.filter(
-    c => me?.role === 'coordinator' || me?.classIds.includes(c.id),
+    c => c.active && (isCoordinator || (me?.classIds.includes(c.id) ?? false)),
   )
+  const myProgrammes = ref.programmes
+    .filter(p => p.active && myClasses.some(c => c.programmeId === p.id))
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   const total = ref.children.filter(
     ch => myClasses.some(c => c.id === ch.classId) && ch.active,
@@ -55,21 +59,29 @@ export function HomeScreen() {
               </div>
             </div>
 
-            <div className="am-sectionlab"><span className="am-eyebrow">My classes</span></div>
+            <div className="am-h2" style={{ marginTop: 4 }}>Our Projects</div>
 
-            {myClasses.map((c, i) => {
-              const count = ref.children.filter(ch => ch.classId === c.id && ch.active).length
+            {myProgrammes.map(p => {
+              const progClasses = myClasses.filter(c => c.programmeId === p.id)
               return (
-                <button key={c.id} className="am-row" onClick={() => navigate(`/class/${c.id}`)}>
-                  <div className="am-ava" style={{ background: AVA_COLORS[i % AVA_COLORS.length] }}>
-                    <Icon name="people" size={24} color="#fff" />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div className="am-row__title">{c.name}</div>
-                    <div className="am-row__sub">{count} children</div>
-                  </div>
-                  <Icon name="chevron" className="am-row__chev" size={22} color="var(--sage)" />
-                </button>
+                <div key={p.id} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div className="am-sectionlab"><span className="am-eyebrow">{p.name}</span></div>
+                  {progClasses.map((c, i) => {
+                    const count = ref.children.filter(ch => ch.classId === c.id && ch.active).length
+                    return (
+                      <button key={c.id} className="am-row" onClick={() => navigate(`/class/${c.id}`)}>
+                        <div className="am-ava" style={{ background: AVA_COLORS[i % AVA_COLORS.length] }}>
+                          <Icon name="people" size={24} color="#fff" />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div className="am-row__title">{c.name}</div>
+                          <div className="am-row__sub">{count} children</div>
+                        </div>
+                        <Icon name="chevron" className="am-row__chev" size={22} color="var(--sage)" />
+                      </button>
+                    )
+                  })}
+                </div>
               )
             })}
 
